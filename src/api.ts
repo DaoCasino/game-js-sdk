@@ -1,4 +1,4 @@
-import {Casino, PlayerInfo} from "./types";
+import {Casino, Game, GameSession, GameSessionUpdate, PlayerInfo} from "./types";
 
 type Request = {
     id: string,
@@ -42,7 +42,7 @@ export class Api {
     // PUBLIC API METHODS
 
     public newGame(deposit: string, casinoId: number, gameId: number) {
-        return this.send("new_game", {
+        return this.send<GameSession>("new_game", {
             deposit,
             casinoid: casinoId,
             gameid: gameId
@@ -53,8 +53,27 @@ export class Api {
         return this.send<PlayerInfo>("account_info");
     }
 
+    public fetchGames() {
+        return this.send<Game[]>("fetch_games");
+    }
+
+    public fetchSessionUpdates(sessionId: number) {
+        return this.send<GameSessionUpdate[]>("fetch_session_updates", {
+            sessionId
+        });
+    }
+
     public fetchCasinos() {
         return this.send<Casino[]>("fetch_casinos");
+    }
+
+    public gameAction(sessionId: number, actionType: number, params: number[]) {
+        return this.send("game_action", {
+            sessionId,
+            actionType,
+            params
+        });
+
     }
 
     // PUBLIC API METHODS END
