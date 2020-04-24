@@ -1,8 +1,9 @@
 import React from 'react';
-import {Api, connect, PlatformBackendConnection, PlayerInfo} from "platform-back-js-lib";
+import {Api, connect, PlatformBackendConnection, PlayerInfo} from "@daocasino/platform-back-js-lib";
 import {AppBar, Button, Divider, Switch, TextField, Toolbar, Typography} from "@material-ui/core";
 import NewGame from "./newGame";
 import {ActiveGameSession} from "./activeGameSession";
+import config from "./config";
 
 enum State {
     NOT_CONNECTED,
@@ -25,7 +26,7 @@ declare global {
 const initialState = {
     cstate: State.NOT_CONNECTED,
     accountInfo: undefined as PlayerInfo | undefined,
-    userName: "tplayer",
+    userName: config.defaultUserName,
     sessionId: -1,
     mode: Mode.NEW_GAME
 }
@@ -42,7 +43,7 @@ class App extends React.Component<any, typeof initialState> {
         (async () => {
             try {
                 // First you call connect to create connection. You can close connection or get api
-                window.connection = await connect("localhost:8080", this.state.userName, false);
+                window.connection = await connect(config.backendAddr, this.state.userName, false);
 
                 // Then you call listen to subscribe to backend events and get api object
                 const api = await window.connection.listen(() => {

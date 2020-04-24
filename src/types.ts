@@ -14,7 +14,7 @@ export type Casino = {
 export type Game = {
     id: number;
     contract: string;
-    params_cnt: number;
+    paramsCnt: number;
     paused: number;
 };
 
@@ -39,8 +39,7 @@ export enum SessionState {
     GameStartedInBC = 1,
     RequestedGameAction = 2,
     GameActionTrxSent = 3,
-    RequestedSignidicePartOne = 4,
-    SignidicePartOneTrxSent = 5,
-    GameFinished = 6,
-    GameFailed = 7,
+    SignidicePartOneTrxSent = 4,
+    GameFinished = 5,
+    GameFailed = 6,
 }

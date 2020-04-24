@@ -1,5 +1,5 @@
 import React from 'react';
-import {Casino, Game, PlayerInfo} from "platform-back-js-lib";
+import {Casino, Game, PlayerInfo} from "@daocasino/platform-back-js-lib";
 import {Typography} from "@material-ui/core";
 import {CasinoList} from "./casinoList";
 import {GamesList} from "./gamesList";
