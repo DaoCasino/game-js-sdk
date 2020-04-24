@@ -1,5 +1,5 @@
 import React from "react";
-import {Casino} from "platform-back-js-lib";
+import {Casino} from "@daocasino/platform-back-js-lib";
 import {Card, CardContent, Typography} from "@material-ui/core";
 
 

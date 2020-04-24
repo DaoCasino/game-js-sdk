@@ -1,5 +1,5 @@
 import React from 'react';
-import {Api, connect, PlatformBackendConnection, PlayerInfo} from "platform-back-js-lib";
+import {Api, connect, PlatformBackendConnection, PlayerInfo} from "@daocasino/platform-back-js-lib";
 import {AppBar, Button, Divider, Switch, TextField, Toolbar, Typography} from "@material-ui/core";
 import NewGame from "./newGame";
 import {ActiveGameSession} from "./activeGameSession";

@@ -47,11 +47,19 @@ export class Api {
 
     // PUBLIC API METHODS
 
-    public newGame(deposit: string, casinoId: number, gameId: number) {
+    public newGame(
+        casinoId: number,
+        gameId: number,
+        deposit: string,
+        actionType: number,
+        actionParams: number[]
+    ) {
         return this.send<GameSession>('new_game', {
             deposit,
-            casinoid: casinoId,
-            gameid: gameId,
+            actionType,
+            actionParams,
+            casinoId,
+            gameId,
         });
     }
 
