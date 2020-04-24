@@ -1,13 +1,39 @@
 {
-  "name": "platform-back-js-lib",
+  "name": "@daocasino/platform-back-js-lib",
   "version": "1.0.0",
-  "private": true,
+  "description": "Use this to connect your frontend to the platform backend",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DaoCasino/game-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DaoCasino/game-js-sdk/issues"
+  },
+  "homepage": "https://github.com/DaoCasino/game-js-sdk/#readme",
+  "author": "scaptaincap <govyazin@mixbytes.io>",
+  "private": false,
+  "scripts": {
+    "prepare": "npm run build",
+    "prebuild": "rm -rf dist",
+    "build": "tsc",
+    "lint": "eslint 'src/**/*.{ts,tsx}'"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc"
-  },
-  "dependencies": {
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.7.0",
+    "@typescript-eslint/parser": "^2.7.0",
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.5.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "husky": "^4.2.5",
+    "prettier": "^1.19.1",
     "typescript": "^3.8.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run lint"
+    }
   }
 }
