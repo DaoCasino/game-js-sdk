@@ -1,5 +1,5 @@
 {
-  "name": "platform-back-js-lib",
+  "name": "@daocasino/platform-back-js-lib",
   "version": "1.0.0",
   "description": "Use this to connect your frontend to the platform backend",
   "license": "MIT",
@@ -32,6 +32,8 @@
     "typescript": "^3.8.3"
   },
   "husky": {
-    "pre-push": "npm run lint"
+    "hooks": {
+      "pre-push": "npm run lint"
+    }
   }
 }
