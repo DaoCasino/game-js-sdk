@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Button, CircularProgress, TextField, Typography} from "@material-ui/core";
+import { CircularProgress, Typography } from "@material-ui/core";
 
 
 export const ActiveGameSession: React.FC<{ sessionId: number }> = ({sessionId}) => {
