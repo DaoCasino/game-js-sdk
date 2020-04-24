@@ -24,12 +24,12 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.7.0",
     "@typescript-eslint/parser": "^2.7.0",
-    "typescript": "^3.8.3",
     "eslint": "^6.6.0",
     "eslint-config-prettier": "^6.5.0",
     "eslint-plugin-prettier": "^3.1.1",
-    "husky": "^3.1.0",
-    "prettier": "^1.19.1"
+    "husky": "^4.2.5",
+    "prettier": "^1.19.1",
+    "typescript": "^3.8.3"
   },
   "husky": {
     "pre-push": "npm run lint"
