@@ -1,7 +1,23 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "outDir": "./dist",
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "allowUnusedLabels": false,
+    "strict": true,
+    "forceConsistentCasingInFileNames": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "newLine": "LF",
+    "noUnusedParameters": true,
+
+    "baseUrl": "src",
+    "outDir": "dist",
     "target": "es5",
     "module": "es2015",
     "moduleResolution": "node",
@@ -14,6 +30,11 @@
     ]
   },
   "include": [
-    "./src/**/*"
-  ]
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "example"
+  ],
 }

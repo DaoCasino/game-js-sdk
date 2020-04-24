@@ -1,0 +1,33 @@
+{
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "prettier/@typescript-eslint",
+      "plugin:prettier/recommended"
+    ],
+    "plugins": ["@typescript-eslint", "prettier"],
+    "env": {
+      "browser": true,
+      "es6": true
+    },
+    "rules": {
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      // note you must disable the base rule as it can report incorrect errors
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": ["error", {
+        "argsIgnorePattern": "^_"
+      }],
+      "prettier/prettier": [
+        "error",
+        {
+          "printWidth": 80,
+          "tabWidth": 4,
+          "singleQuote": true,
+          "trailingComma": "es5"
+        }
+      ]
+    },
+    "parser": "@typescript-eslint/parser"
+  }
