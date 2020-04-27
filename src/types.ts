@@ -18,6 +18,22 @@ export type Game = {
     paused: number;
 };
 
+export enum GameParamsType {
+    minBet = 0,
+    maxBet = 1,
+}
+
+export type GameParams = {
+    type: GameParamsType;
+    value: number;
+};
+
+export type CasinoGame = {
+    gameId: number;
+    paused: boolean;
+    params: GameParams[];
+};
+
 export type GameSession = {
     id: number;
     player: string;
