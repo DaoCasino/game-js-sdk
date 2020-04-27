@@ -1,5 +1,6 @@
 import {
     Casino,
+    CasinoGame,
     Game,
     GameSession,
     GameSessionUpdate,
@@ -69,6 +70,12 @@ export class Api {
 
     public fetchGames() {
         return this.send<Game[]>('fetch_games');
+    }
+
+    public fetchGamesInCasino(casinoId: number) {
+        return this.send<CasinoGame[]>('fetch_games_in_casino', {
+            casinoId,
+        });
     }
 
     public fetchSessionUpdates(sessionId: number) {
