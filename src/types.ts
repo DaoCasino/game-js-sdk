@@ -1,61 +1,24 @@
-export type PlayerInfo = {
-    balance: string;
-    activePermission: string;
-    ownerPermission: string;
-    linkedCasinos: string;
+export type Request = {
+    id: string;
+    handler: (payload: unknown) => unknown;
+    rejecter: (reason: WsError) => unknown;
 };
 
-export type Casino = {
-    id: number;
-    contract: string;
-    paused: boolean;
+export type AuthData = {
+    accessToken: string;
+    refreshToken: string;
 };
 
-export type Game = {
-    id: number;
-    contract: string;
-    paramsCnt: number;
-    paused: number;
+export type WsError = {
+    code: number;
+    message: string;
 };
 
-export enum GameParamsType {
-    minBet = 0,
-    maxBet = 1,
-}
-
-export type GameParams = {
-    type: GameParamsType;
-    value: number;
+export type InMsg = {
+    type: 'response' | 'update';
+    id: string;
+    status: 'ok' | 'error';
+    payload: unknown;
 };
 
-export type CasinoGame = {
-    gameId: number;
-    paused: boolean;
-    params: GameParams[];
-};
-
-export type GameSession = {
-    id: number;
-    player: string;
-    casinoID: number;
-    gameID: number;
-    blockchainSesID: number;
-    state: number;
-};
-
-export type GameSessionUpdate = {
-    sessionId: number;
-    updateType: number;
-    timestamp: number;
-    data: any;
-};
-
-export enum SessionState {
-    NewGameTrxSent = 0,
-    GameStartedInBC = 1,
-    RequestedGameAction = 2,
-    GameActionTrxSent = 3,
-    SignidicePartOneTrxSent = 4,
-    GameFinished = 5,
-    GameFailed = 6,
-}
+export type EventListener = () => unknown;
