@@ -1,5 +1,5 @@
 import React from 'react';
-import {Api, connect, PlatformBackendConnection, PlayerInfo} from "@daocasino/platform-back-js-lib";
+import {Api, connect, PlayerInfo} from "@daocasino/platform-back-js-lib";
 import {AppBar, Button, Divider, Switch, TextField, Toolbar, Typography} from "@material-ui/core";
 import NewGame from "./newGame";
 import {ActiveGameSession} from "./activeGameSession";
@@ -18,7 +18,6 @@ enum Mode {
 
 declare global {
     interface Window {
-        connection?: PlatformBackendConnection;
         api?: Api
     }
 }
@@ -42,20 +41,25 @@ class App extends React.Component<any, typeof initialState> {
     connect() {
         (async () => {
             try {
-                // First you call connect to create connection. You can close connection or get api
-                window.connection = await connect(config.backendAddr, this.state.userName, false);
-
-                // Then you call listen to subscribe to backend events and get api object
-                const api = await window.connection.listen(() => {
-                    // This triggers when backend sends update of game session
-                }, () => {
+                // First you call connect to create api.
+                const api = await connect(config.backendAddr, () => {
                     // This triggers when the connection is closed
                     this.setState({
                         cstate: State.NOT_CONNECTED,
                         accountInfo: undefined
                     })
-                });
+                }, false);
+
                 window.api = api;
+
+                // Then you call listen to subscribe to backend events and get api object
+                await api.listen(() => {
+                    // This triggers when backend sends update of game session
+                    console.log("onEvent triggered");
+                });
+
+                // Then you need to authorize to be able to use all the api methods
+                await api.auth(this.state.userName);
 
                 // Now you are fully connected
                 this.setState({
@@ -110,7 +114,7 @@ class App extends React.Component<any, typeof initialState> {
                         Connect!
                     </Button>
                     <Button onClick={() => {
-                        window.connection?.close()
+                        window.api?.close();
                     }} disabled={cstate !== State.CONNECTED} size={"large"} color={"secondary"} variant={"contained"}
                             style={{margin: 10}}>
                         Disconnect

@@ -5,48 +5,53 @@ import {
     GameSession,
     GameSessionUpdate,
     PlayerInfo,
-} from './types';
+} from './models';
+import { randString } from './tools';
+import { Connection } from './connection';
+import { AuthData } from './types';
 
-type Request = {
-    id: string;
-    handler: (payload: any) => any;
-    rejecter: (reason: WsError) => any;
-};
+export class Api extends Connection {
+    private authData?: AuthData = undefined;
 
-type WsError = {
-    code: number;
-    message: string;
-};
+    private eventListener?: EventListener;
 
-type InMsg = {
-    type: 'response' | 'update';
-    id: string;
-    status: 'ok' | 'error';
-    payload: any;
-};
-
-type Listener = () => any;
-
-enum State {
-    INIT,
-    READY,
-    CLOSED,
-}
-
-export class Api {
-    private readonly sendMessage: (data: any) => any;
-
-    private requestsCount = 0;
-    private requests: Request[] = [];
-
-    private state = State.INIT;
-    private listener: Listener | undefined = undefined;
-
-    constructor(sendMessage: (data: any) => any) {
-        this.sendMessage = sendMessage;
+    public authorized() {
+        return this.authData !== undefined;
     }
 
-    // PUBLIC API METHODS
+    public async listen(onEvent: EventListener) {
+        if (this.eventListener)
+            throw new Error('listen() can be called only once');
+        this.eventListener = onEvent;
+    }
+
+    public async auth(account: string) {
+        const auth = await fetch(`${this.httpUrl}/auth`, {
+            method: 'POST',
+            body: JSON.stringify({
+                accountName: account,
+                email: randString(),
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).catch(e => {
+            // TODO handle auth error
+            throw e;
+        });
+
+        const authData: AuthData = await auth.json();
+
+        if (!authData.accessToken || !authData.refreshToken) {
+            throw new Error('Invalid authorization data');
+        }
+
+        await this.send('auth', {
+            token: authData.accessToken,
+        });
+
+        this.authData = authData;
+    }
 
     public newGame(
         casinoId: number,
@@ -96,78 +101,24 @@ export class Api {
         });
     }
 
-    // PUBLIC API METHODS END
+    public static async connect(
+        url: string,
+        onClose: (closeEvent: CloseEvent) => unknown,
+        secure = true
+    ): Promise<Api> {
+        if (url.startsWith('http') || url.startsWith('ws'))
+            throw new Error('The url should not contain connection schema');
 
-    /** @internal */
-    public auth(accessToken: string) {
-        return this.send('auth', {
-            token: accessToken,
+        const wsUrl = secure ? `wss://${url}/connect` : `ws://${url}/connect`;
+        const httpUrl = secure ? `https://${url}` : `http://${url}`;
+
+        const webSocket = new WebSocket(wsUrl);
+        await new Promise((resolve, reject) => {
+            webSocket.onopen = resolve;
+            webSocket.onclose = reject;
         });
-    }
-
-    private send<T>(request: string, payload: any = {}): Promise<T> {
-        return new Promise((resolve, reject) => {
-            if (this.state === State.CLOSED) {
-                const err: WsError = {
-                    code: -1,
-                    message: 'Websocket is already closed',
-                };
-                reject(err);
-                return;
-            }
-            if (this.state === State.READY && !this.listener) {
-                const err: WsError = {
-                    code: -1,
-                    message: 'Cannot call api methods before calling listen()',
-                };
-                reject(err);
-                return;
-            }
-            this.requestsCount++;
-            const id = this.requestsCount.toString();
-            this.requests.push({
-                id,
-                handler: payload => {
-                    resolve(payload);
-                },
-                rejecter: reject,
-            });
-            this.sendMessage({
-                request,
-                id,
-                payload,
-            });
-        });
-    }
-
-    /** @internal */
-    public onMessage(ev: MessageEvent) {
-        const data = JSON.parse(ev.data) as InMsg;
-        if (data.type === 'response') {
-            const request = this.requests.find(req => req.id === data.id);
-            if (!request)
-                // TODO wft, response to no-request
-                return;
-            if (data.status === 'ok') {
-                request.handler(data.payload);
-            } else {
-                request.rejecter(data.payload as WsError);
-            }
-        }
-    }
-
-    /** @internal */
-    public close() {
-        this.state = State.CLOSED;
-        this.requests.forEach(req => {
-            req.rejecter({ code: -1, message: 'Websocket was closed' });
-        });
-    }
-
-    /** @internal */
-    public setListener(listener: Listener) {
-        if (this.listener) throw new Error('listen() can be called only once');
-        this.state = State.READY;
-        this.listener = listener;
+        return new Api(wsUrl, httpUrl, onClose, webSocket);
     }
 }
+
+export const connect = Api.connect;
