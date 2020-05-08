@@ -15,7 +15,7 @@ export class Api extends Connection {
 
     private eventListener?: EventListener;
 
-    public authorized() {
+    public isAuthorized() {
         return this.authData !== undefined;
     }
 
@@ -98,7 +98,7 @@ export class Api extends Connection {
         });
     }
 
-    private static checkProtocol(url: string) {
+    private static isHasProtocol(url: string) {
         try {
             const u = new URL(url);
             return u.protocol !== 'localhost:';
@@ -113,7 +113,7 @@ export class Api extends Connection {
         params: ConnectionParams = {}
     ): Promise<Api> {
         // If we can construct URL - user provided schema
-        if (Api.checkProtocol(url))
+        if (Api.isHasProtocol(url))
             throw new Error('The url should not contain connection schema');
 
         const secure = params.secure !== undefined ? params.secure : true;
