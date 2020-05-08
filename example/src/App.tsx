@@ -1,5 +1,5 @@
 import React from 'react';
-import {Api, connect, PlayerInfo} from "@daocasino/platform-back-js-lib";
+import {Api, connect, PlayerInfo, TokenExpiredError, AuthData} from "@daocasino/platform-back-js-lib";
 import {AppBar, Button, Divider, Switch, TextField, Toolbar, Typography} from "@material-ui/core";
 import NewGame from "./newGame";
 import {ActiveGameSession} from "./activeGameSession";
@@ -43,27 +43,46 @@ class App extends React.Component<any, typeof initialState> {
             try {
                 // First you call connect to create api.
                 const api = await connect(config.backendAddr, {
-                    token: undefined,
+                    secure: false,
                     onClose: () => {
                         // This triggers when the connection is closed
                         this.setState({
                             cstate: State.NOT_CONNECTED,
                             accountInfo: undefined
                         })
-                    },
-                    secure: false
+                    }
                 });
-
                 window.api = api;
 
+                // Then you can authorize using old token or by getting a new one
+                const accessToken = localStorage.getItem("accessToken");
+                const refreshToken = localStorage.getItem("refreshToken");
+                const newLogin = async () => {
+                    const newAuthData = await api.getToken(this.state.userName);
+                    localStorage.setItem("accessToken", newAuthData.accessToken);
+                    localStorage.setItem("refreshToken", newAuthData.refreshToken);
+                    await api.auth(newAuthData)
+                }
+                if (accessToken && refreshToken) {
+                    const authData: AuthData = {
+                        accessToken,
+                        refreshToken
+                    }
+                    try {
+                        await api.auth(authData)
+                    } catch (e) {
+                        if (e instanceof TokenExpiredError) {
+                            await newLogin();
+                        }
+                    }
+                } else {
+                    await newLogin();
+                }
                 // Then you call listen to subscribe to backend events and get api object
                 await api.listen(() => {
                     // This triggers when backend sends update of game session
                     console.log("onEvent triggered");
                 });
-
-                // Then you need to authorize to be able to use all the api methods
-                const accessToken = await api.auth(this.state.userName);
 
                 // Now you are fully connected
                 this.setState({

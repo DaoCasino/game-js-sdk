@@ -1,7 +1,14 @@
+import { WsError } from './errors';
+
 export type Request = {
     id: string;
     handler: (payload: unknown) => unknown;
-    rejecter: (reason: WsError) => unknown;
+    rejecter: (error: WsError) => unknown;
+};
+
+export type ConnectionParams = {
+    onClose?: (closeEvent: CloseEvent) => unknown;
+    secure?: boolean;
 };
 
 export type AuthData = {
@@ -9,7 +16,7 @@ export type AuthData = {
     refreshToken: string;
 };
 
-export type WsError = {
+export type WsErrorMsg = {
     code: number;
     message: string;
 };

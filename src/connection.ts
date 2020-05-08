@@ -1,10 +1,10 @@
-import { InMsg, Request, WsError } from './types';
+import { InMsg, Request, WsErrorMsg } from './types';
+import { wsError } from './errors';
 
 export type Params = {
     wsUrl: string;
     httpUrl: string;
     onClose?: (closeEvent: CloseEvent) => unknown;
-    token?: string;
     secure: boolean;
 };
 
@@ -27,7 +27,7 @@ export class Connection {
 
     protected onClose(ev: CloseEvent) {
         this.requests.forEach(req => {
-            req.rejecter({ code: -1, message: 'Websocket was closed' });
+            req.rejecter(wsError(-1, 'Websocket was closed'));
         });
         if (this.onCloseUser) {
             this.onCloseUser(ev);
@@ -39,12 +39,14 @@ export class Connection {
         if (data.type === 'response') {
             const request = this.requests.find(req => req.id === data.id);
             if (!request)
-                // TODO wft, response to no-request
+                // Have to be unreachable unless server responses to not-sent request
                 return;
             if (data.status === 'ok') {
                 request.handler(data.payload);
             } else {
-                request.rejecter(data.payload as WsError);
+                const errorMsg = data.payload as WsErrorMsg;
+                const error = wsError(errorMsg.code);
+                request.rejecter(error);
             }
         }
     }
@@ -52,11 +54,7 @@ export class Connection {
     protected send<T>(request: string, payload: unknown = {}): Promise<T> {
         return new Promise((resolve, reject) => {
             if (this.webSocket.readyState !== WebSocket.OPEN) {
-                const err: WsError = {
-                    code: -1,
-                    message: 'Websocket is already closed',
-                };
-                reject(err);
+                reject(wsError(-1, 'Websocket is already closed'));
                 return;
             }
             this.requestsCount++;
