@@ -8,14 +8,14 @@ import {
 } from './models';
 import { randString } from './tools';
 import { Connection } from './connection';
-import { AuthData } from './types';
+import { AuthData, ConnectionParams, EventListener } from './types';
 
 export class Api extends Connection {
-    private authData?: AuthData = undefined;
+    private authData?: AuthData;
 
     private eventListener?: EventListener;
 
-    public authorized() {
+    public isAuthorized() {
         return this.authData !== undefined;
     }
 
@@ -25,8 +25,8 @@ export class Api extends Connection {
         this.eventListener = onEvent;
     }
 
-    public async auth(account: string) {
-        const auth = await fetch(`${this.httpUrl}/auth`, {
+    public async getToken(account: string): Promise<AuthData> {
+        const auth = await fetch(`${this.params.httpUrl}/auth`, {
             method: 'POST',
             body: JSON.stringify({
                 accountName: account,
@@ -39,13 +39,10 @@ export class Api extends Connection {
             // TODO handle auth error
             throw e;
         });
+        return auth.json() as Promise<AuthData>;
+    }
 
-        const authData: AuthData = await auth.json();
-
-        if (!authData.accessToken || !authData.refreshToken) {
-            throw new Error('Invalid authorization data');
-        }
-
+    public async auth(authData: AuthData) {
         await this.send('auth', {
             token: authData.accessToken,
         });
@@ -101,13 +98,25 @@ export class Api extends Connection {
         });
     }
 
+    private static isHasProtocol(url: string) {
+        try {
+            const u = new URL(url);
+            return u.protocol !== 'localhost:';
+        } catch (e) {
+            return false;
+        }
+    }
+
+    // URL should not contain schema!
     public static async connect(
         url: string,
-        onClose: (closeEvent: CloseEvent) => unknown,
-        secure = true
+        params: ConnectionParams = {}
     ): Promise<Api> {
-        if (url.startsWith('http') || url.startsWith('ws'))
+        // If we can construct URL - user provided schema
+        if (Api.isHasProtocol(url))
             throw new Error('The url should not contain connection schema');
+
+        const secure = params.secure !== undefined ? params.secure : true;
 
         const wsUrl = secure ? `wss://${url}/connect` : `ws://${url}/connect`;
         const httpUrl = secure ? `https://${url}` : `http://${url}`;
@@ -117,7 +126,15 @@ export class Api extends Connection {
             webSocket.onopen = resolve;
             webSocket.onclose = reject;
         });
-        return new Api(wsUrl, httpUrl, onClose, webSocket);
+        return new Api(
+            {
+                httpUrl,
+                wsUrl,
+                onClose: params.onClose,
+                secure,
+            },
+            webSocket
+        );
     }
 }
 
