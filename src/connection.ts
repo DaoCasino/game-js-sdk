@@ -1,14 +1,21 @@
 import { InMsg, Request, WsError } from './types';
 
+export type Params = {
+    wsUrl: string;
+    httpUrl: string;
+    onClose?: (closeEvent: CloseEvent) => unknown;
+    token?: string;
+    secure: boolean;
+};
+
 export class Connection {
-    protected wsUrl: string;
-    protected httpUrl: string;
+    protected params: Params;
     protected webSocket: WebSocket;
 
     private requestsCount = 0;
     private requests: Request[] = [];
 
-    private readonly onCloseUser: (ev: CloseEvent) => unknown;
+    private readonly onCloseUser: (ev: CloseEvent) => unknown | undefined;
 
     protected sendMessage(data: unknown) {
         return this.webSocket.send(JSON.stringify(data));
@@ -22,7 +29,9 @@ export class Connection {
         this.requests.forEach(req => {
             req.rejecter({ code: -1, message: 'Websocket was closed' });
         });
-        this.onCloseUser(ev);
+        if (this.onCloseUser) {
+            this.onCloseUser(ev);
+        }
     }
 
     private onMessage(ev: MessageEvent) {
@@ -67,15 +76,8 @@ export class Connection {
         });
     }
 
-    protected constructor(
-        wsUrl: string,
-        httpUrl: string,
-        onClose: (closeEvent: CloseEvent) => unknown,
-        webSocket: WebSocket
-    ) {
-        this.wsUrl = wsUrl;
-        this.httpUrl = httpUrl;
-        this.onCloseUser = onClose;
+    protected constructor(params: Params, webSocket: WebSocket) {
+        this.params = params;
         this.webSocket = webSocket;
 
         webSocket.onclose = this.onClose.bind(this);

@@ -42,13 +42,17 @@ class App extends React.Component<any, typeof initialState> {
         (async () => {
             try {
                 // First you call connect to create api.
-                const api = await connect(config.backendAddr, () => {
-                    // This triggers when the connection is closed
-                    this.setState({
-                        cstate: State.NOT_CONNECTED,
-                        accountInfo: undefined
-                    })
-                }, false);
+                const api = await connect(config.backendAddr, {
+                    token: undefined,
+                    onClose: () => {
+                        // This triggers when the connection is closed
+                        this.setState({
+                            cstate: State.NOT_CONNECTED,
+                            accountInfo: undefined
+                        })
+                    },
+                    secure: false
+                });
 
                 window.api = api;
 
@@ -59,7 +63,7 @@ class App extends React.Component<any, typeof initialState> {
                 });
 
                 // Then you need to authorize to be able to use all the api methods
-                await api.auth(this.state.userName);
+                const accessToken = await api.auth(this.state.userName);
 
                 // Now you are fully connected
                 this.setState({

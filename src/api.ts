@@ -11,12 +11,12 @@ import { Connection } from './connection';
 import { AuthData } from './types';
 
 export class Api extends Connection {
-    private authData?: AuthData = undefined;
+    private accessToken?: string;
 
     private eventListener?: EventListener;
 
     public authorized() {
-        return this.authData !== undefined;
+        return this.accessToken !== undefined;
     }
 
     public async listen(onEvent: EventListener) {
@@ -26,31 +26,35 @@ export class Api extends Connection {
     }
 
     public async auth(account: string) {
-        const auth = await fetch(`${this.httpUrl}/auth`, {
-            method: 'POST',
-            body: JSON.stringify({
-                accountName: account,
-                email: randString(),
-            }),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        }).catch(e => {
-            // TODO handle auth error
-            throw e;
-        });
+        if (!this.params.token) {
+            const auth = await fetch(`${this.params.httpUrl}/auth`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    accountName: account,
+                    email: randString(),
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).catch(e => {
+                // TODO handle auth error
+                throw e;
+            });
+            const authData: AuthData = await auth.json();
+            this.params.token = authData.accessToken;
+        }
 
-        const authData: AuthData = await auth.json();
-
-        if (!authData.accessToken || !authData.refreshToken) {
+        if (!this.params.token) {
             throw new Error('Invalid authorization data');
         }
 
         await this.send('auth', {
-            token: authData.accessToken,
+            token: this.params.token,
         });
 
-        this.authData = authData;
+        this.accessToken = this.params.token;
+
+        return this.accessToken;
     }
 
     public newGame(
@@ -103,11 +107,16 @@ export class Api extends Connection {
 
     public static async connect(
         url: string,
-        onClose: (closeEvent: CloseEvent) => unknown,
-        secure = true
+        params: {
+            onClose?: (closeEvent: CloseEvent) => unknown;
+            token?: string;
+            secure?: boolean;
+        }
     ): Promise<Api> {
         if (url.startsWith('http') || url.startsWith('ws'))
             throw new Error('The url should not contain connection schema');
+
+        const secure = params.secure !== undefined ? params.secure : true;
 
         const wsUrl = secure ? `wss://${url}/connect` : `ws://${url}/connect`;
         const httpUrl = secure ? `https://${url}` : `http://${url}`;
@@ -117,7 +126,16 @@ export class Api extends Connection {
             webSocket.onopen = resolve;
             webSocket.onclose = reject;
         });
-        return new Api(wsUrl, httpUrl, onClose, webSocket);
+        return new Api(
+            {
+                httpUrl,
+                wsUrl,
+                onClose: params.onClose,
+                token: params.token,
+                secure,
+            },
+            webSocket
+        );
     }
 }
 
