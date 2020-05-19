@@ -74,6 +74,10 @@ export class Api extends Connection {
         return this.send<Game[]>('fetch_games');
     }
 
+    public fetchSessions() {
+        return this.send<GameSession[]>('fetch_sessions');
+    }
+
     public fetchGamesInCasino(casinoId: number) {
         return this.send<CasinoGame[]>('fetch_games_in_casino', {
             casinoId,
