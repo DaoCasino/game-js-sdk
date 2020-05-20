@@ -51,8 +51,8 @@ export class Api extends Connection {
     }
 
     public newGame(
-        casinoId: number,
-        gameId: number,
+        casinoId: string,
+        gameId: string,
         deposit: string,
         actionType: number,
         actionParams: number[]
@@ -78,13 +78,13 @@ export class Api extends Connection {
         return this.send<GameSession[]>('fetch_sessions');
     }
 
-    public fetchGamesInCasino(casinoId: number) {
+    public fetchGamesInCasino(casinoId: string) {
         return this.send<CasinoGame[]>('fetch_games_in_casino', {
             casinoId,
         });
     }
 
-    public fetchSessionUpdates(sessionId: number) {
+    public fetchSessionUpdates(sessionId: string) {
         return this.send<GameSessionUpdate[]>('fetch_session_updates', {
             sessionId,
         });
@@ -94,7 +94,7 @@ export class Api extends Connection {
         return this.send<Casino[]>('fetch_casinos');
     }
 
-    public gameAction(sessionId: number, actionType: number, params: number[]) {
+    public gameAction(sessionId: string, actionType: number, params: number[]) {
         return this.send('game_action', {
             sessionId,
             actionType,
