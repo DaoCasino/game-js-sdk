@@ -2,17 +2,17 @@ export type PlayerInfo = {
     balance: string;
     activePermission: string;
     ownerPermission: string;
-    linkedCasinos: string;
+    linkedCasinos: Casino[];
 };
 
 export type Casino = {
-    id: number;
+    id: string;
     contract: string;
     paused: boolean;
 };
 
 export type Game = {
-    id: number;
+    id: string;
     contract: string;
     paramsCnt: number;
     paused: number;
@@ -25,26 +25,26 @@ export enum GameParamsType {
 
 export type GameParams = {
     type: GameParamsType;
-    value: number;
+    value: string;
 };
 
 export type CasinoGame = {
-    gameId: number;
+    gameId: string;
     paused: boolean;
     params: GameParams[];
 };
 
 export type GameSession = {
-    id: number;
+    id: string;
     player: string;
-    casinoID: number;
-    gameID: number;
-    blockchainSesID: number;
+    casinoID: string;
+    gameID: string;
+    blockchainSesID: string;
     state: number;
 };
 
 export type GameSessionUpdate = {
-    sessionId: number;
+    sessionId: string;
     updateType: number;
     timestamp: number;
     // eslint-disable-next-line
