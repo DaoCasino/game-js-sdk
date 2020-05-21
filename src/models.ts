@@ -2,7 +2,7 @@ export type PlayerInfo = {
     balance: string;
     activePermission: string;
     ownerPermission: string;
-    linkedCasinos: string;
+    linkedCasinos: Casino[];
 };
 
 export type Casino = {
@@ -25,7 +25,7 @@ export enum GameParamsType {
 
 export type GameParams = {
     type: GameParamsType;
-    value: number;
+    value: string;
 };
 
 export type CasinoGame = {
