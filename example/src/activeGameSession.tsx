@@ -2,11 +2,11 @@ import React, {useEffect, useState} from "react";
 import { CircularProgress, Typography } from "@material-ui/core";
 
 
-export const ActiveGameSession: React.FC<{ sessionId: number }> = ({sessionId}) => {
+export const ActiveGameSession: React.FC<{ sessionId: string }> = ({sessionId}) => {
     const [loading, setLoading] = useState(true);
     const [winAmount, setWinAmount] = useState("");
     const fetchUpdates = async () => {
-        return window.api!!.fetchSessionUpdates(sessionId);
+        return window.api!!.fetchSessionUpdates(sessionId.toString());
     }
     const waitForActionComplete = () => {
         fetchUpdates().then(updates => {

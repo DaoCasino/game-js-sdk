@@ -4,7 +4,7 @@ import {ButtonBase, Grid, Paper} from "@material-ui/core";
 import {CasinoCard} from "./casinoCard";
 
 
-export const CasinoList: React.FC<{ casinos: Casino[], selectedCasino: number, onSelect: (id: number) => any }> = (props) => {
+export const CasinoList: React.FC<{ casinos: Casino[], selectedCasino: string, onSelect: (id: string) => any }> = (props) => {
     const {casinos, onSelect, selectedCasino} = props;
 
     return <Grid container justify="center" spacing={2}>

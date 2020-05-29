@@ -1,5 +1,6 @@
 import { InMsg, Request, WsErrorMsg } from './types';
 import { wsError } from './errors';
+import { DEFAULT_PLATFORM_ID } from './constants';
 
 export type Params = {
     wsUrl: string;
@@ -8,14 +9,73 @@ export type Params = {
     secure: boolean;
 };
 
+export class WalletAuth {
+    private readonly walletUrl: string;
+    private readonly redirectUrl: URL;
+    private readonly platformId: string;
+    public readonly token: string | null;
+
+    constructor(
+        walletUrl: string,
+        redirectUrl: string,
+        platformId = DEFAULT_PLATFORM_ID
+    ) {
+        this.walletUrl = walletUrl;
+        this.redirectUrl = new URL(redirectUrl);
+        this.platformId = platformId;
+        this.token = this.getWalletToken();
+    }
+
+    public reset(): WalletAuth {
+        return new WalletAuth(
+            this.walletUrl,
+            this.redirectUrl.toString(),
+            this.platformId
+        );
+    }
+
+    public hasToken(): boolean {
+        return this.token && this.token !== '';
+    }
+
+    public auth(casinoName: string) {
+        const url = new URL('/auth', this.walletUrl);
+        const redirectToTrim = this.redirectUrl.toString();
+        const redirect = redirectToTrim.endsWith('/')
+            ? redirectToTrim.slice(0, -1)
+            : redirectToTrim;
+        url.searchParams.append('name', casinoName);
+        url.searchParams.append('url', redirect);
+        url.searchParams.append('id', this.platformId);
+
+        window.location.href = url.toString();
+    }
+
+    private getWalletToken(): string | null {
+        const url = new URL(window.location.toString());
+
+        const clearUrl = new URL(window.location.toString());
+        clearUrl.searchParams.forEach((value, key) => {
+            clearUrl.searchParams.delete(key);
+        });
+        if (clearUrl.toString() !== this.redirectUrl.toString()) return null;
+
+        return url.searchParams.get('token');
+    }
+
+    public clearLocation() {
+        const url = new URL(window.location.toString());
+        url.searchParams.delete('token');
+        window.history.pushState({}, document.title, url.toString());
+    }
+}
+
 export class Connection {
     protected params: Params;
     protected webSocket: WebSocket;
 
     private requestsCount = 0;
     private requests: Request[] = [];
-
-    private readonly onCloseUser: (ev: CloseEvent) => unknown | undefined;
 
     protected sendMessage(data: unknown) {
         return this.webSocket.send(JSON.stringify(data));
@@ -29,8 +89,8 @@ export class Connection {
         this.requests.forEach(req => {
             req.rejecter(wsError(-1, 'Websocket was closed'));
         });
-        if (this.onCloseUser) {
-            this.onCloseUser(ev);
+        if (this.params.onClose) {
+            this.params.onClose(ev);
         }
     }
 

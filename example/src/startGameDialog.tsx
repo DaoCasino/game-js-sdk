@@ -3,7 +3,7 @@ import {Button, TextField, Typography} from "@material-ui/core";
 import {GameSession} from "@daocasino/platform-back-js-lib";
 
 
-export const StartGame: React.FC<{ gameId: number, casinoId: number, onStarted: (gameSession: GameSession) => any }> =
+export const StartGame: React.FC<{ gameId: string, casinoId: string, onStarted: (gameSession: GameSession) => any }> =
     ({gameId, casinoId, onStarted}) => {
         const [deposit, setDeposit] = useState("1.0000 BET");
         const [rollNumber, setRollNumber] = useState("50");

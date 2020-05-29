@@ -1,4 +1,6 @@
-export type PlayerInfo = {
+export type AccountInfo = {
+    accountName: string;
+    email: string;
     balance: string;
     activePermission: string;
     ownerPermission: string;
