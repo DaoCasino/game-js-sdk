@@ -1,3 +1,5 @@
 example/
 .prettierrc
 .eslintrc.json
+src/
+.idea/
