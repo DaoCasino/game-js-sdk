@@ -1,6 +1,6 @@
 import React from 'react';
-import {Api, connect, PlayerInfo, TokenExpiredError, AuthData} from "@daocasino/platform-back-js-lib";
-import {AppBar, Button, Divider, Switch, TextField, Toolbar, Typography} from "@material-ui/core";
+import {Api, AuthData, connect, AccountInfo, TokenExpiredError, WalletAuth} from "@daocasino/platform-back-js-lib";
+import {AppBar, Button, Divider, Switch, Toolbar, Typography} from "@material-ui/core";
 import NewGame from "./newGame";
 import {ActiveGameSession} from "./activeGameSession";
 import config from "./config";
@@ -24,18 +24,30 @@ declare global {
 
 const initialState = {
     cstate: State.NOT_CONNECTED,
-    accountInfo: undefined as PlayerInfo | undefined,
-    userName: config.defaultUserName,
-    sessionId: -1,
+    accountInfo: undefined as AccountInfo | undefined,
+    sessionId: "",
     mode: Mode.NEW_GAME
 }
 
 class App extends React.Component<any, typeof initialState> {
+    // Create walletAuth object to be able to do authorization via DaoWallet
+    // It automatically takes token from location if present
+    private walletAuth = new WalletAuth("https://app.dev.daowallet.com/", "http://localhost:3000")
 
     constructor(props: any, context: any) {
         super(props, context);
+
+        // Remove token from the window location
+        this.walletAuth.clearLocation();
         this.state = initialState;
+
         this.connect = this.connect.bind(this)
+        this.authWithWallet = this.authWithWallet.bind(this)
+    }
+
+    authWithWallet() {
+        // Redirect to DaoWallet
+        this.walletAuth.auth("ttcasino");
     }
 
     connect() {
@@ -45,6 +57,7 @@ class App extends React.Component<any, typeof initialState> {
                 const api = await connect(config.backendAddr, {
                     secure: false,
                     onClose: () => {
+                        console.log("onClose");
                         // This triggers when the connection is closed
                         this.setState({
                             cstate: State.NOT_CONNECTED,
@@ -58,7 +71,8 @@ class App extends React.Component<any, typeof initialState> {
                 const accessToken = localStorage.getItem("accessToken");
                 const refreshToken = localStorage.getItem("refreshToken");
                 const newLogin = async () => {
-                    const newAuthData = await api.getToken(this.state.userName);
+                    // Here walletAuth must contain token
+                    const newAuthData = await api.getToken(this.walletAuth);
                     localStorage.setItem("accessToken", newAuthData.accessToken);
                     localStorage.setItem("refreshToken", newAuthData.refreshToken);
                     await api.auth(newAuthData)
@@ -72,7 +86,9 @@ class App extends React.Component<any, typeof initialState> {
                         await api.auth(authData)
                     } catch (e) {
                         if (e instanceof TokenExpiredError) {
-                            await newLogin();
+                            localStorage.removeItem("accessToken");
+                            localStorage.removeItem("refreshToken");
+                            this.authWithWallet();
                         }
                     }
                 } else {
@@ -106,6 +122,7 @@ class App extends React.Component<any, typeof initialState> {
 
     render() {
         const {cstate, mode, sessionId} = this.state;
+        const canAuth = this.walletAuth.hasToken() || localStorage.getItem("accessToken");
         return (
             <div style={{width: "100%"}}>
                 <AppBar position="static">
@@ -124,15 +141,20 @@ class App extends React.Component<any, typeof initialState> {
                     alignItems: "center",
                     padding: 10
                 }}>
-                    <Typography variant="h6">
-                        Enter the account name:
-                    </Typography>
-                    <TextField value={this.state.userName} onChange={(e) => {
-                        this.setState({
-                            userName: e.target.value
-                        })
-                    }} name={"Account name"}/>
-                    <Button onClick={this.connect} disabled={cstate !== State.NOT_CONNECTED} size={"large"}
+                    <Button onClick={this.authWithWallet} disabled={!(cstate === State.NOT_CONNECTED && !canAuth)} size={"large"}
+                            color={"primary"} variant={"contained"} style={{margin: 10}}>
+                        Auth with wallet
+                    </Button>
+                    <Button onClick={() => {
+                        localStorage.removeItem("accessToken");
+                        localStorage.removeItem("refreshToken");
+                        this.walletAuth = this.walletAuth.reset();
+                        this.setState({});
+                    }} disabled={!(cstate === State.NOT_CONNECTED)} size={"large"}
+                            color={"primary"} variant={"contained"} style={{margin: 10}}>
+                        Clear auth data
+                    </Button>
+                    <Button onClick={this.connect} disabled={!(cstate === State.NOT_CONNECTED && canAuth)} size={"large"}
                             color={"primary"} variant={"contained"} style={{margin: 10}}>
                         Connect!
                     </Button>
@@ -146,6 +168,8 @@ class App extends React.Component<any, typeof initialState> {
                     <div>
                         <Typography variant="h6">
                             Backend said your account balance is {this.state.accountInfo.balance}<br/>
+                            Backend said your account name is {this.state.accountInfo.accountName}<br/>
+                            Backend said your account email is {this.state.accountInfo.email}<br/>
                         </Typography>
                         <Divider style={{margin: 20}}/>
                         <div style={{
@@ -164,21 +188,21 @@ class App extends React.Component<any, typeof initialState> {
                                         mode: e.target.checked ? Mode.SESSION : Mode.NEW_GAME
                                     })
                                 }}
-                                disabled={sessionId === -1}
+                                disabled={!sessionId}
                             />
                             <Typography variant={"h6"}>
                                 Active Game
                             </Typography>
                         </div>
                         {mode === Mode.NEW_GAME &&
-                        <NewGame accountInfo={this.state.accountInfo} userName={this.state.userName}
+                        <NewGame accountInfo={this.state.accountInfo}
                                  onStarted={(sessionId) => {
                                      this.setState({
                                          sessionId,
                                          mode: Mode.SESSION
                                      })
                                  }}/>}
-                        {sessionId !== -1 && mode === Mode.SESSION &&
+                        {sessionId && mode === Mode.SESSION &&
                         <ActiveGameSession sessionId={sessionId}/>}
                     </div>
                     }

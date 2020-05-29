@@ -4,7 +4,7 @@ import {ButtonBase, Grid, Paper} from "@material-ui/core";
 import {GameCard} from "./gameCard";
 
 
-export const GamesList: React.FC<{ games: Game[], selectedGame: number, onSelect: (id: number) => any }> = (props) => {
+export const GamesList: React.FC<{ games: Game[], selectedGame: string, onSelect: (id: string) => any }> = (props) => {
     const {games, onSelect, selectedGame} = props;
 
     return <Grid container justify="center" spacing={2}>

@@ -4,10 +4,10 @@ import {
     Game,
     GameSession,
     GameSessionUpdate,
-    PlayerInfo,
+    AccountInfo,
 } from './models';
-import { randString } from './tools';
-import { Connection } from './connection';
+// import { randString } from './tools';
+import { Connection, WalletAuth } from './connection';
 import { AuthData, ConnectionParams, EventListener } from './types';
 
 export class Api extends Connection {
@@ -25,12 +25,11 @@ export class Api extends Connection {
         this.eventListener = onEvent;
     }
 
-    public async getToken(account: string): Promise<AuthData> {
+    public async getToken(walletAuth: WalletAuth): Promise<AuthData> {
         const auth = await fetch(`${this.params.httpUrl}/auth`, {
             method: 'POST',
             body: JSON.stringify({
-                accountName: account,
-                email: randString(),
+                tmpToken: walletAuth.token,
             }),
             headers: {
                 'Content-Type': 'application/json',
@@ -43,11 +42,13 @@ export class Api extends Connection {
     }
 
     public async auth(authData: AuthData) {
-        await this.send('auth', {
+        const accountInfo = await this.send('auth', {
             token: authData.accessToken,
         });
 
         this.authData = authData;
+
+        return accountInfo;
     }
 
     public newGame(
@@ -67,7 +68,7 @@ export class Api extends Connection {
     }
 
     public accountInfo() {
-        return this.send<PlayerInfo>('account_info');
+        return this.send<AccountInfo>('account_info');
     }
 
     public fetchGames() {

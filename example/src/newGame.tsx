@@ -1,5 +1,5 @@
 import React from 'react';
-import {Casino, Game, PlayerInfo} from "@daocasino/platform-back-js-lib";
+import {Casino, Game, AccountInfo} from "@daocasino/platform-back-js-lib";
 import {Typography} from "@material-ui/core";
 import {CasinoList} from "./casinoList";
 import {GamesList} from "./gamesList";
@@ -8,15 +8,14 @@ import {StartGame} from "./startGameDialog";
 
 const initialState = {
     casinos: [] as Casino[],
-    selectedCasino: -1,
+    selectedCasino: "",
     games: [] as Game[],
-    selectedGame: -1
+    selectedGame: ""
 }
 
 type Props = {
-    accountInfo: PlayerInfo,
-    userName: string,
-    onStarted: (sessionId: number) => any
+    accountInfo: AccountInfo,
+    onStarted: (sessionId: string) => any
 }
 
 class NewGame extends React.Component<Props, typeof initialState> {
@@ -52,7 +51,7 @@ class NewGame extends React.Component<Props, typeof initialState> {
             </Typography>
             <CasinoList casinos={casinos} selectedCasino={selectedCasino}
                         onSelect={id => this.setState({selectedCasino: id})}/>
-            {selectedCasino !== -1 &&
+            {selectedCasino &&
             <div>
                 <Typography variant="h6">
                     Select game to play in {casinos.find(c => c.id === selectedCasino)!!.contract}:
@@ -60,7 +59,7 @@ class NewGame extends React.Component<Props, typeof initialState> {
                 <GamesList games={games} selectedGame={selectedGame}
                            onSelect={id => this.setState({selectedGame: id})}/>
             </div>}
-            {selectedGame !== -1 &&
+            {selectedGame &&
             <StartGame gameId={selectedGame} casinoId={selectedCasino}
                        onStarted={session => onStarted(session.id)}/>}
         </div>;
