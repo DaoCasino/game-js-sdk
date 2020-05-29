@@ -1,5 +1,6 @@
 import { InMsg, Request, WsErrorMsg } from './types';
 import { wsError } from './errors';
+import { DEFAULT_PLATFORM_ID } from './constants';
 
 export type Params = {
     wsUrl: string;
@@ -14,7 +15,11 @@ export class WalletAuth {
     private readonly platformId: string;
     public readonly token: string | null;
 
-    constructor(walletUrl: string, redirectUrl: string, platformId = '1') {
+    constructor(
+        walletUrl: string,
+        redirectUrl: string,
+        platformId = DEFAULT_PLATFORM_ID
+    ) {
         this.walletUrl = walletUrl;
         this.redirectUrl = new URL(redirectUrl);
         this.platformId = platformId;

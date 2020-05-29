@@ -32,7 +32,7 @@ const initialState = {
 class App extends React.Component<any, typeof initialState> {
     // Create walletAuth object to be able to do authorization via DaoWallet
     // It automatically takes token from location if present
-    private walletAuth = new WalletAuth("https://app.dev.daowallet.com/", "http://localhost:3000")
+    private walletAuth = new WalletAuth(config.walletUrl, config.walletAuthRedirectUrl);
 
     constructor(props: any, context: any) {
         super(props, context);
@@ -47,7 +47,7 @@ class App extends React.Component<any, typeof initialState> {
 
     authWithWallet() {
         // Redirect to DaoWallet
-        this.walletAuth.auth("ttcasino");
+        this.walletAuth.auth(config.casinoName);
     }
 
     connect() {
