@@ -18,15 +18,11 @@ export type Game = {
     contract: string;
     paramsCnt: number;
     paused: number;
+    meta: unknown;
 };
 
-export enum GameParamsType {
-    minBet = 0,
-    maxBet = 1,
-}
-
 export type GameParams = {
-    type: GameParamsType;
+    type: number;
     value: string;
 };
 

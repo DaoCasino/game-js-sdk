@@ -2,7 +2,8 @@ import { InMsg, Request, WsErrorMsg } from './types';
 import { wsError } from './errors';
 import { DEFAULT_PLATFORM_ID } from './constants';
 
-export type Params = {
+// Exported just for children classes, not used in api
+export type ConstructorParams = {
     wsUrl: string;
     httpUrl: string;
     onClose?: (closeEvent: CloseEvent) => unknown;
@@ -71,7 +72,7 @@ export class WalletAuth {
 }
 
 export class Connection {
-    protected params: Params;
+    protected params: ConstructorParams;
     protected webSocket: WebSocket;
 
     private requestsCount = 0;
@@ -134,7 +135,7 @@ export class Connection {
         });
     }
 
-    protected constructor(params: Params, webSocket: WebSocket) {
+    protected constructor(params: ConstructorParams, webSocket: WebSocket) {
         this.params = params;
         this.webSocket = webSocket;
 
