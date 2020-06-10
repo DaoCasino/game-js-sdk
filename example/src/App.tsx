@@ -41,6 +41,13 @@ class App extends React.Component<any, typeof initialState> {
         this.walletAuth.clearLocation();
         this.state = initialState;
 
+        const accessToken = localStorage.getItem("accessToken");
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (accessToken && refreshToken) {
+            // there are already tokens, can connect immideately
+            this.connect();
+        }
+
         this.connect = this.connect.bind(this)
         this.authWithWallet = this.authWithWallet.bind(this)
     }
@@ -56,6 +63,7 @@ class App extends React.Component<any, typeof initialState> {
                 // First you call connect to create api.
                 const api = await connect(config.backendAddr, {
                     secure: false,
+                    autoRefresh: true,
                     onClose: () => {
                         console.log("onClose");
                         // This triggers when the connection is closed
@@ -66,6 +74,15 @@ class App extends React.Component<any, typeof initialState> {
                     }
                 });
                 window.api = api;
+
+
+                // Listen to eventEmitter if it updates tokens
+                api.eventEmitter.on("tokensUpdate", (authData: AuthData) => {
+                    console.log("eventEmitter tokensUpdate:")
+                    console.log(authData);
+                    localStorage.setItem("accessToken", authData.accessToken);
+                    localStorage.setItem("refreshToken", authData.refreshToken);
+                })
 
                 // Then you can authorize using old token or by getting a new one
                 const accessToken = localStorage.getItem("accessToken");
@@ -85,15 +102,24 @@ class App extends React.Component<any, typeof initialState> {
                     try {
                         await api.auth(authData)
                     } catch (e) {
+                        // if autoRefresh is enabled, there TokenExpiredError is just fired when refreshToken is too old
+                        // (barely never or in case of bad token)
                         if (e instanceof TokenExpiredError) {
                             localStorage.removeItem("accessToken");
                             localStorage.removeItem("refreshToken");
-                            this.authWithWallet();
                         }
+                        console.error(e);
+                        return;
                     }
                 } else {
-                    await newLogin();
+                    try {
+                        await newLogin();
+                    } catch (e) {
+                        console.error(e);
+                        return;
+                    }
                 }
+
                 // Then you call listen to subscribe to backend events and get api object
                 await api.listen(() => {
                     // This triggers when backend sends update of game session

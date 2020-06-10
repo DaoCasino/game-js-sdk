@@ -9,6 +9,8 @@ export type Request = {
 export type ConnectionParams = {
     onClose?: (closeEvent: CloseEvent) => unknown;
     secure?: boolean;
+    autoReconnect?: boolean;
+    autoRefresh?: boolean;
 };
 
 export type AuthData = {

@@ -1,14 +1,19 @@
 import {
+    AccountInfo,
     Casino,
     CasinoGame,
     Game,
     GameSession,
     GameSessionUpdate,
-    AccountInfo,
 } from './models';
-// import { randString } from './tools';
 import { Connection, WalletAuth } from './connection';
 import { AuthData, ConnectionParams, EventListener } from './types';
+import * as jwt from 'jsonwebtoken';
+import { TokenExpiredError } from './errors';
+
+const MILLIS_IN_SEC = 1000;
+// In seconds
+const PRE_REFRESH_TOKEN_TIME = 10;
 
 export class Api extends Connection {
     private authData?: AuthData;
@@ -34,21 +39,75 @@ export class Api extends Connection {
             headers: {
                 'Content-Type': 'application/json',
             },
-        }).catch(e => {
-            // TODO handle auth error
-            throw e;
+        });
+        return auth.json() as Promise<AuthData>;
+    }
+
+    public async refreshToken(authData: AuthData) {
+        const auth = await fetch(`${this.params.httpUrl}/refresh_token`, {
+            method: 'POST',
+            body: JSON.stringify({
+                refreshToken: authData.refreshToken,
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
         });
         return auth.json() as Promise<AuthData>;
     }
 
     public async auth(authData: AuthData) {
-        const accountInfo = await this.send('auth', {
-            token: authData.accessToken,
-        });
+        const planRefresh = () => {
+            const refresh = async () => {
+                try {
+                    this.authData = await this.refreshToken(this.authData);
+                    this.eventEmitter.emit('tokensUpdate', this.authData);
+                    planRefresh();
+                } catch (e) {
+                    console.error('Token autoRefresh failed');
+                }
+            };
+            const decoded = jwt.decode(this.authData.accessToken, {
+                complete: true,
+            });
+            const exp = (decoded as { payload: { exp: number } }).payload!!.exp;
 
-        this.authData = authData;
+            const nowTime = new Date().getTime() / MILLIS_IN_SEC;
 
-        return accountInfo;
+            if (this.params.autoRefresh) {
+                const refreshAfter = exp - nowTime - PRE_REFRESH_TOKEN_TIME;
+                setTimeout(refresh, refreshAfter * MILLIS_IN_SEC);
+            }
+        };
+
+        // Try to auth, update authData tokens if authRefresh is enabled
+        try {
+            const accountInfo = await this.send('auth', {
+                token: authData.accessToken,
+            });
+            this.authData = authData;
+            if (this.params.autoRefresh) planRefresh();
+            return accountInfo;
+        } catch (e) {
+            if (!this.params.autoRefresh) throw e;
+            if (e instanceof TokenExpiredError) {
+                try {
+                    authData = await this.refreshToken(authData);
+                } catch (refreshE) {
+                    // Throw e just to be more comfortable catching in front
+                    throw e;
+                }
+                console.log(authData);
+                const accountInfo = await this.send('auth', {
+                    token: authData.accessToken,
+                });
+                this.eventEmitter.emit('tokensUpdate', authData);
+                this.authData = authData;
+                planRefresh();
+                return accountInfo;
+            }
+            throw e;
+        }
     }
 
     public newGame(
@@ -136,6 +195,8 @@ export class Api extends Connection {
                 httpUrl,
                 wsUrl,
                 onClose: params.onClose,
+                autoReconnect: params.autoReconnect || false,
+                autoRefresh: params.autoRefresh || false,
                 secure,
             },
             webSocket
