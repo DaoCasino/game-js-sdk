@@ -1,5 +1,5 @@
 import { GameParams, GameSession } from './models';
-import { WAIT_ACTION_DURATION, UPDATE_TYPE } from './constants';
+import { WAIT_ACTION_DURATION, UPDATE_TYPE, UPDATE_TYPE, UPDATE_TYPE, UPDATE_TYPE } from './constants';
 import { Api } from './api';
 
 export class GameService {
@@ -58,9 +58,9 @@ export class GameService {
         deposit: string,
         actionType: number,
         params: number[],
-        updateTypes?: number[],
+        updateType: number = UPDATE_TYPE,
         duration: number = WAIT_ACTION_DURATION
-    ): Promise<T[]> {
+    ): Promise<T> {
         this.session = await this.api.newGame(
             this.casinoId,
             this.gameId,
@@ -69,27 +69,19 @@ export class GameService {
             params
         );
 
-        if (!updateTypes) {
-            updateTypes = [UPDATE_TYPE];
-        }
-
-        return Promise.all(
-            updateTypes.map(updateType =>
-                this.waitForActionComplete<T>(
-                    this.session.id,
-                    updateType,
-                    duration
-                )
-            )
+        return this.waitForActionComplete<T>(
+            this.session.id,
+            updateType,
+            duration
         );
     }
 
     public async gameAction<T>(
         actionType: number,
         params: number[],
-        updateTypes?: number[],
+        updateType: number = WAIT_ACTION_DURATION,
         duration: number = WAIT_ACTION_DURATION
-    ): Promise<T[]> {
+    ): Promise<T> {
         if (!this.session) {
             throw new Error('No game session');
         }
@@ -100,18 +92,10 @@ export class GameService {
         ); // TODO: add check response, if !OK throw new error
         console.log(response);
 
-        if (!updateTypes) {
-            updateTypes = [UPDATE_TYPE];
-        }
-
-        return Promise.all(
-            updateTypes.map(updateType =>
-                this.waitForActionComplete<T>(
-                    this.session.id,
-                    updateType,
-                    duration
-                )
-            )
+        return this.waitForActionComplete<T>(
+            this.session.id,
+            updateType,
+            duration
         );
     }
 }
