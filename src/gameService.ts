@@ -1,5 +1,5 @@
 import { GameParams, GameSession } from './models';
-import { WAIT_ACTION_DURATION, UPDATE_TYPE, UPDATE_TYPE, UPDATE_TYPE, UPDATE_TYPE } from './constants';
+import { WAIT_ACTION_DURATION, UPDATE_TYPE } from './constants';
 import { Api } from './api';
 
 export class GameService {
@@ -79,7 +79,7 @@ export class GameService {
     public async gameAction<T>(
         actionType: number,
         params: number[],
-        updateType: number = WAIT_ACTION_DURATION,
+        updateType: number = UPDATE_TYPE,
         duration: number = WAIT_ACTION_DURATION
     ): Promise<T> {
         if (!this.session) {
