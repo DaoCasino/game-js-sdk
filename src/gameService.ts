@@ -1,4 +1,4 @@
-import { GameParams } from './models';
+import { GameParams, GameSession } from './models';
 import { WAIT_ACTION_DURATION, UPDATE_TYPE } from './constants';
 import { Api } from './api';
 
@@ -7,6 +7,7 @@ export class GameService {
     private gameParams: GameParams[];
     private casinoId: string;
     private api: Api;
+    private session: GameSession;
 
     constructor(api: Api, { id, params }, casinoId: string) {
         this.api = api;
@@ -60,7 +61,7 @@ export class GameService {
         duration: number = WAIT_ACTION_DURATION,
         updateType: number = UPDATE_TYPE
     ): Promise<T> {
-        const session = await this.api.newGame(
+        this.session = await this.api.newGame(
             this.casinoId,
             this.gameId,
             deposit,
@@ -68,6 +69,33 @@ export class GameService {
             params
         );
 
-        return this.waitForActionComplete<T>(session.id, updateType, duration);
+        return this.waitForActionComplete<T>(
+            this.session.id,
+            updateType,
+            duration
+        );
+    }
+
+    public async gameAction<T>(
+        actionType: number,
+        params: number[],
+        duration: number = WAIT_ACTION_DURATION,
+        updateType: number = UPDATE_TYPE
+    ): Promise<T> {
+        if (!this.session) {
+            throw new Error('No game session');
+        }
+        const response = await this.api.gameAction(
+            this.session.id,
+            actionType,
+            params
+        ); // TODO: add check response, if !OK throw new error
+        console.log(response);
+
+        return this.waitForActionComplete<T>(
+            this.session.id,
+            updateType,
+            duration
+        );
     }
 }
