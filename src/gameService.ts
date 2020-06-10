@@ -58,9 +58,9 @@ export class GameService {
         deposit: string,
         actionType: number,
         params: number[],
-        duration: number = WAIT_ACTION_DURATION,
-        updateType: number = UPDATE_TYPE
-    ): Promise<T> {
+        updateTypes?: number[],
+        duration: number = WAIT_ACTION_DURATION
+    ): Promise<T[]> {
         this.session = await this.api.newGame(
             this.casinoId,
             this.gameId,
@@ -69,19 +69,27 @@ export class GameService {
             params
         );
 
-        return this.waitForActionComplete<T>(
-            this.session.id,
-            updateType,
-            duration
+        if (!updateTypes) {
+            updateTypes = [UPDATE_TYPE];
+        }
+
+        return Promise.all(
+            updateTypes.map(updateType =>
+                this.waitForActionComplete<T>(
+                    this.session.id,
+                    updateType,
+                    duration
+                )
+            )
         );
     }
 
     public async gameAction<T>(
         actionType: number,
         params: number[],
-        duration: number = WAIT_ACTION_DURATION,
-        updateType: number = UPDATE_TYPE
-    ): Promise<T> {
+        updateTypes?: number[],
+        duration: number = WAIT_ACTION_DURATION
+    ): Promise<T[]> {
         if (!this.session) {
             throw new Error('No game session');
         }
@@ -92,10 +100,18 @@ export class GameService {
         ); // TODO: add check response, if !OK throw new error
         console.log(response);
 
-        return this.waitForActionComplete<T>(
-            this.session.id,
-            updateType,
-            duration
+        if (!updateTypes) {
+            updateTypes = [UPDATE_TYPE];
+        }
+
+        return Promise.all(
+            updateTypes.map(updateType =>
+                this.waitForActionComplete<T>(
+                    this.session.id,
+                    updateType,
+                    duration
+                )
+            )
         );
     }
 }
