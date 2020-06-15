@@ -10,8 +10,35 @@ type AnyEvent = EventType[keyof EventType];
 
 export class EventEmitter {
     private subscribers: {
-        [EvName in keyof EventType]?: Callback<EventType[EvName]>[];
+        [EvName in keyof EventType]?: {
+            cb: Callback<EventType[EvName]>;
+            once: boolean;
+        }[];
     } = {};
+
+    public once<EvName extends keyof EventType>(
+        eventName: EvName,
+        cb: Callback<EventType[EvName]>
+    ) {
+        if (this.subscribers[eventName] == undefined)
+            this.subscribers[eventName] = [];
+        this.subscribers[eventName].push({
+            cb: cb as Callback<AnyEvent>,
+            once: true,
+        });
+        return this;
+    }
+
+    public off<EvName extends keyof EventType>(
+        eventName: EvName,
+        cb: Callback<EventType[EvName]>
+    ) {
+        if (this.subscribers[eventName] == undefined) return this;
+        this.subscribers[eventName] = this.subscribers[eventName].filter(
+            s => s.cb != cb
+        );
+        return this;
+    }
 
     public on<EvName extends keyof EventType>(
         eventName: EvName,
@@ -19,7 +46,11 @@ export class EventEmitter {
     ) {
         if (this.subscribers[eventName] == undefined)
             this.subscribers[eventName] = [];
-        this.subscribers[eventName].push(cb as Callback<AnyEvent>);
+        this.subscribers[eventName].push({
+            cb: cb as Callback<AnyEvent>,
+            once: false,
+        });
+        return this;
     }
 
     /** @internal */
@@ -27,10 +58,16 @@ export class EventEmitter {
         eventName: EvName,
         value: EventType[EvName]
     ) {
-        if (this.subscribers[eventName]) {
-            this.subscribers[eventName].forEach(subscriber => {
-                subscriber(value);
-            });
+        const subs = this.subscribers[eventName];
+        if (subs) {
+            for (let i = 0; i < subs.length; i++) {
+                const sub = subs[i];
+                sub.cb(value);
+                if (sub.once) {
+                    subs.splice(i, 1);
+                    i--;
+                }
+            }
         }
     }
 }
