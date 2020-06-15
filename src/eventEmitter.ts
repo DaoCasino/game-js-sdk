@@ -20,8 +20,7 @@ export class EventEmitter {
         eventName: EvName,
         cb: Callback<EventType[EvName]>
     ) {
-        if (this.subscribers[eventName] == undefined)
-            this.subscribers[eventName] = [];
+        if (!(eventName in this.subscribers)) this.subscribers[eventName] = [];
         this.subscribers[eventName].push({
             cb: cb as Callback<AnyEvent>,
             once: true,
@@ -33,7 +32,7 @@ export class EventEmitter {
         eventName: EvName,
         cb: Callback<EventType[EvName]>
     ) {
-        if (this.subscribers[eventName] == undefined) return this;
+        if (!(eventName in this.subscribers)) return this;
         this.subscribers[eventName] = this.subscribers[eventName].filter(
             s => s.cb != cb
         );
@@ -44,8 +43,7 @@ export class EventEmitter {
         eventName: EvName,
         cb: Callback<EventType[EvName]>
     ) {
-        if (this.subscribers[eventName] == undefined)
-            this.subscribers[eventName] = [];
+        if (!(eventName in this.subscribers)) this.subscribers[eventName] = [];
         this.subscribers[eventName].push({
             cb: cb as Callback<AnyEvent>,
             once: false,
