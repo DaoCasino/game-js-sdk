@@ -1,0 +1,13 @@
+language: minimal
+
+git:
+  depth: false
+
+services:
+  - docker
+
+jobs:
+  include:
+    - stage: build & push
+      script:
+        - docker build --build-arg NPM_TOKEN=$NPN_TOKEN -t $TRAVIS_REPO_SLUG .
