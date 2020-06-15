@@ -57,14 +57,14 @@ export class EventEmitter {
         value: EventType[EvName]
     ) {
         const subs = this.subscribers[eventName];
-        if (subs) {
-            for (let i = 0; i < subs.length; i++) {
-                const sub = subs[i];
-                sub.cb(value);
-                if (sub.once) {
-                    subs.splice(i, 1);
-                    i--;
-                }
+        if (!subs) return;
+
+        for (let i = 0; i < subs.length; i++) {
+            const sub = subs[i];
+            sub.cb(value);
+            if (sub.once) {
+                subs.splice(i, 1);
+                i--;
             }
         }
     }
