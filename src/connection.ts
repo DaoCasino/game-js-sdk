@@ -1,12 +1,15 @@
 import { InMsg, Request, WsErrorMsg } from './types';
 import { wsError } from './errors';
 import { DEFAULT_PLATFORM_ID } from './constants';
+import { EventEmitter } from './eventEmitter';
 
 // Exported just for children classes, not used in api
 export type ConstructorParams = {
     wsUrl: string;
     httpUrl: string;
     onClose?: (closeEvent: CloseEvent) => unknown;
+    autoReconnect: boolean;
+    autoRefresh: boolean;
     secure: boolean;
 };
 
@@ -72,11 +75,17 @@ export class WalletAuth {
 }
 
 export class Connection {
+    get eventEmitter(): EventEmitter {
+        return this._eventEmitter;
+    }
+
     protected params: ConstructorParams;
     protected webSocket: WebSocket;
 
     private requestsCount = 0;
     private requests: Request[] = [];
+
+    protected _eventEmitter = new EventEmitter();
 
     protected sendMessage(data: unknown) {
         return this.webSocket.send(JSON.stringify(data));
