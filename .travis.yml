@@ -10,4 +10,4 @@ jobs:
   include:
     - stage: build & push
       script:
-        - docker build --build-arg NPM_TOKEN=$NPN_TOKEN -t game-js-sdk .
+        - docker build --build-arg NPM_TOKEN=$NPM_TOKEN -t game-js-sdk .
