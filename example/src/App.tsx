@@ -80,6 +80,8 @@ class App extends React.Component<any, typeof initialState> {
                 console.log(await api.fetchGlobalSessions("wins"));
                 console.log(await api.fetchGlobalSessions("losts"));
 
+                console.log(await api.fetchCasinoSessions("all", "0"))
+
                 // Listen to eventEmitter if it updates tokens
                 api.eventEmitter.on("tokensUpdate", (authData: AuthData) => {
                     console.log("eventEmitter tokensUpdate:")
