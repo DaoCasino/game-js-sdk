@@ -75,6 +75,10 @@ class App extends React.Component<any, typeof initialState> {
                 });
                 window.api = api;
 
+                // Just to show 30 wins, lost or all sessions
+                console.log(await api.fetchGlobalSessions("all"));
+                console.log(await api.fetchGlobalSessions("wins"));
+                console.log(await api.fetchGlobalSessions("losts"));
 
                 // Listen to eventEmitter if it updates tokens
                 api.eventEmitter.on("tokensUpdate", (authData: AuthData) => {
