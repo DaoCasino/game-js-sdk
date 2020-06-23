@@ -39,6 +39,9 @@ export type GameSession = {
     gameID: string;
     blockchainSesID: string;
     state: number;
+    lastUpdate: number;
+    deposit: string;
+    playerWinAmount?: string;
 };
 
 export type GameSessionUpdate = {

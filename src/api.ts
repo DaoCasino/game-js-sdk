@@ -82,7 +82,7 @@ export class Api extends Connection {
 
         // Try to auth, update authData tokens if authRefresh is enabled
         try {
-            const accountInfo = await this.send('auth', {
+            const accountInfo = await this.send<AccountInfo>('auth', {
                 token: authData.accessToken,
             });
             this.authData = authData;
@@ -98,7 +98,7 @@ export class Api extends Connection {
                     throw e;
                 }
                 console.log(authData);
-                const accountInfo = await this.send('auth', {
+                const accountInfo = await this.send<AccountInfo>('auth', {
                     token: authData.accessToken,
                 });
                 this.eventEmitter.emit('tokensUpdate', authData);
@@ -136,6 +136,12 @@ export class Api extends Connection {
 
     public fetchSessions() {
         return this.send<GameSession[]>('fetch_sessions');
+    }
+
+    public fetchGlobalSessions(filter: 'all' | 'wins' | 'losts') {
+        return this.send<GameSession[]>('fetch_global_sessions', {
+            filter,
+        });
     }
 
     public fetchGamesInCasino(casinoId: string) {
