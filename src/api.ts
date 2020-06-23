@@ -144,6 +144,16 @@ export class Api extends Connection {
         });
     }
 
+    public fetchCasinoSessions(
+        filter: 'all' | 'wins' | 'losts',
+        casinoId: string
+    ) {
+        return this.send<GameSession[]>('fetch_casino_sessions', {
+            filter,
+            casinoId,
+        });
+    }
+
     public fetchGamesInCasino(casinoId: string) {
         return this.send<CasinoGame[]>('fetch_games_in_casino', {
             casinoId,
