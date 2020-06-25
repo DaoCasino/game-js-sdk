@@ -161,9 +161,12 @@ export class Api extends Connection {
     }
 
     public fetchSessionUpdates(sessionId: string) {
-        return this.send<GameSessionUpdate[]>('fetch_session_updates', {
-            sessionId,
-        });
+        return this.send<GameSessionUpdate<unknown>[]>(
+            'fetch_session_updates',
+            {
+                sessionId,
+            }
+        );
     }
 
     public fetchCasinos() {
