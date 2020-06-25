@@ -1,4 +1,4 @@
-import { GameParams, GameSession } from './models';
+import { GameParams, GameSession, GameSessionUpdate } from './models';
 import { WAIT_ACTION_DURATION, UPDATE_TYPE } from './constants';
 import { Api } from './api';
 
@@ -31,22 +31,22 @@ export class GameService {
 
     private waitForActionComplete<T>(
         sessionId: string,
-        updateType: number,
+        updateTypes: number[],
         duration: number
-    ): Promise<T> {
+    ): Promise<GameSessionUpdate<T>> {
         const fetchUpdates = () => this.api.fetchSessionUpdates(sessionId);
         return new Promise((resolve, reject) => {
             const waitForActionComplete = () => {
                 fetchUpdates()
                     .then(updates => {
-                        const update = updates.find(
-                            update => update.updateType === updateType
+                        const update = updates.find(update =>
+                            updateTypes.includes(update.updateType)
                         );
                         if (!update) {
                             setTimeout(waitForActionComplete, duration);
                             return;
                         }
-                        resolve(update.data);
+                        resolve(update as GameSessionUpdate<T>);
                     })
                     .catch(err => reject(err));
             };
@@ -58,9 +58,9 @@ export class GameService {
         deposit: string,
         actionType: number,
         params: number[],
-        updateType: number = UPDATE_TYPE,
+        updateType: number | number[] = [UPDATE_TYPE],
         duration: number = WAIT_ACTION_DURATION
-    ): Promise<T> {
+    ): Promise<GameSessionUpdate<T>> {
         this.session = await this.api.newGame(
             this.casinoId,
             this.gameId,
@@ -71,7 +71,7 @@ export class GameService {
 
         return this.waitForActionComplete<T>(
             this.session.id,
-            updateType,
+            typeof updateType === 'number' ? [updateType] : updateType,
             duration
         );
     }
@@ -79,22 +79,19 @@ export class GameService {
     public async gameAction<T>(
         actionType: number,
         params: number[],
-        updateType: number = UPDATE_TYPE,
-        duration: number = WAIT_ACTION_DURATION
-    ): Promise<T> {
+        updateType: number | number[] = [UPDATE_TYPE],
+        duration: number = WAIT_ACTION_DURATION,
+        deposit = ''
+    ): Promise<GameSessionUpdate<T>> {
         if (!this.session) {
             throw new Error('No game session');
         }
-        const response = await this.api.gameAction(
-            this.session.id,
-            actionType,
-            params
-        ); // TODO: add check response, if !OK throw new error
-        console.log(response);
+
+        await this.api.gameAction(this.session.id, actionType, params, deposit);
 
         return this.waitForActionComplete<T>(
             this.session.id,
-            updateType,
+            typeof updateType === 'number' ? [updateType] : updateType,
             duration
         );
     }

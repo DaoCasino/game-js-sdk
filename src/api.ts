@@ -161,21 +161,31 @@ export class Api extends Connection {
     }
 
     public fetchSessionUpdates(sessionId: string) {
-        return this.send<GameSessionUpdate[]>('fetch_session_updates', {
-            sessionId,
-        });
+        return this.send<GameSessionUpdate<unknown>[]>(
+            'fetch_session_updates',
+            {
+                sessionId,
+            }
+        );
     }
 
     public fetchCasinos() {
         return this.send<Casino[]>('fetch_casinos');
     }
 
-    public gameAction(sessionId: string, actionType: number, params: number[]) {
-        return this.send('game_action', {
+    public gameAction(
+        sessionId: string,
+        actionType: number,
+        params: number[],
+        deposit = ''
+    ) {
+        const payload = {
             sessionId,
             actionType,
             params,
-        });
+            deposit,
+        };
+        return this.send('game_action', payload);
     }
 
     private static isHasProtocol(url: string) {

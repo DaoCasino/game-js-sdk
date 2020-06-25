@@ -44,12 +44,11 @@ export type GameSession = {
     playerWinAmount?: string;
 };
 
-export type GameSessionUpdate = {
+export type GameSessionUpdate<T> = {
     sessionId: string;
     updateType: number;
     timestamp: number;
-    // eslint-disable-next-line
-    data: any;
+    data: T;
 };
 
 export enum SessionState {
