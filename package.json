@@ -1,6 +1,6 @@
 {
   "name": "@daocasino/platform-back-js-lib",
-  "version": "1.4.3",
+  "version": "1.5.0",
   "description": "Use this to connect your frontend to the platform backend",
   "license": "MIT",
   "repository": {

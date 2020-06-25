@@ -170,12 +170,19 @@ export class Api extends Connection {
         return this.send<Casino[]>('fetch_casinos');
     }
 
-    public gameAction(sessionId: string, actionType: number, params: number[]) {
-        return this.send('game_action', {
+    public gameAction(
+        sessionId: string,
+        actionType: number,
+        params: number[],
+        deposit = ''
+    ) {
+        const payload = {
             sessionId,
             actionType,
             params,
-        });
+            deposit,
+        };
+        return this.send('game_action', payload);
     }
 
     private static isHasProtocol(url: string) {

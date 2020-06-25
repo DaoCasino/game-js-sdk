@@ -31,7 +31,7 @@ export class GameService {
 
     private waitForActionComplete<T>(
         sessionId: string,
-        updateType: number,
+        updateTypes: number[],
         duration: number
     ): Promise<T> {
         const fetchUpdates = () => this.api.fetchSessionUpdates(sessionId);
@@ -39,8 +39,8 @@ export class GameService {
             const waitForActionComplete = () => {
                 fetchUpdates()
                     .then(updates => {
-                        const update = updates.find(
-                            update => update.updateType === updateType
+                        const update = updates.find(update =>
+                            updateTypes.includes(update.updateType)
                         );
                         if (!update) {
                             setTimeout(waitForActionComplete, duration);
@@ -58,7 +58,7 @@ export class GameService {
         deposit: string,
         actionType: number,
         params: number[],
-        updateType: number = UPDATE_TYPE,
+        updateTypes: number[] = [UPDATE_TYPE],
         duration: number = WAIT_ACTION_DURATION
     ): Promise<T> {
         this.session = await this.api.newGame(
@@ -71,7 +71,7 @@ export class GameService {
 
         return this.waitForActionComplete<T>(
             this.session.id,
-            updateType,
+            updateTypes,
             duration
         );
     }
@@ -79,22 +79,19 @@ export class GameService {
     public async gameAction<T>(
         actionType: number,
         params: number[],
-        updateType: number = UPDATE_TYPE,
-        duration: number = WAIT_ACTION_DURATION
+        updateTypes: number[] = [UPDATE_TYPE],
+        duration: number = WAIT_ACTION_DURATION,
+        deposit = ''
     ): Promise<T> {
         if (!this.session) {
             throw new Error('No game session');
         }
-        const response = await this.api.gameAction(
-            this.session.id,
-            actionType,
-            params
-        ); // TODO: add check response, if !OK throw new error
-        console.log(response);
+
+        await this.api.gameAction(this.session.id, actionType, params, deposit);
 
         return this.waitForActionComplete<T>(
             this.session.id,
-            updateType,
+            updateTypes,
             duration
         );
     }
