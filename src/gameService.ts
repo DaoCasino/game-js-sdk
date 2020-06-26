@@ -34,14 +34,23 @@ export class GameService {
         updateTypes: number[],
         duration: number
     ): Promise<GameSessionUpdate<T>> {
+        const ts = new Date().getTime();
         const fetchUpdates = () => this.api.fetchSessionUpdates(sessionId);
         return new Promise((resolve, reject) => {
             const waitForActionComplete = () => {
                 fetchUpdates()
                     .then(updates => {
-                        const update = updates.find(update =>
-                            updateTypes.includes(update.updateType)
-                        );
+                        const update = updates
+                            .sort((a, b) => {
+                                const tsA = new Date(a.timestamp).getTime();
+                                const tsB = new Date(b.timestamp).getTime();
+                                return tsA === tsB ? 0 : tsA < tsB ? 1 : -1;
+                            })
+                            .find(
+                                update =>
+                                    updateTypes.includes(update.updateType) &&
+                                    new Date(update.timestamp).getTime() > ts
+                            );
                         if (!update) {
                             setTimeout(waitForActionComplete, duration);
                             return;
