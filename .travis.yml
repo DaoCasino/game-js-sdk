@@ -11,5 +11,4 @@ jobs:
     - stage: build & push
       script:
         - docker build --build-arg NPM_TOKEN=$NPM_TOKEN -t game-js-sdk .
-      branches: {only: [master]}
-      if: tag IS present
+      if: branch = master AND tag IS present
