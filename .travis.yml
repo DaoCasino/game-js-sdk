@@ -1,14 +1,11 @@
-language: minimal
+language: node_js
+node_js:
+  - "12.13"
 
-git:
-  depth: false
-
-services:
-  - docker
-
-jobs:
-  include:
-    - stage: build & push
-      script:
-        - docker build --build-arg NPM_TOKEN=$NPM_TOKEN -t game-js-sdk .
-      if: branch = master AND tag IS present
+deploy:
+  provider: npm
+  email: "$NPM_EMAIL"
+  api_key: "$NPM_TOKEN"
+  on:
+    tags: true
+    branch: master
