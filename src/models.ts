@@ -47,7 +47,7 @@ export type GameSession = {
 export type GameSessionUpdate<T> = {
     sessionId: string;
     updateType: number;
-    timestamp: number;
+    timestamp: string;
     data: T;
 };
 
