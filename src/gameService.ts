@@ -1,8 +1,9 @@
 import { GameParams, GameSession, GameSessionUpdate } from './models';
 import { WAIT_ACTION_DURATION, UPDATE_TYPE } from './constants';
 import { Api } from './api';
+import { EventEmitter } from './eventEmitter';
 
-export class GameService {
+export class GameService extends EventEmitter {
     private gameId: string;
     private gameParams: GameParams[];
     private casinoId: string;
@@ -10,6 +11,7 @@ export class GameService {
     private session: GameSession;
 
     constructor(api: Api, { id, params }, casinoId: string) {
+        super();
         this.api = api;
         this.gameId = id;
         this.gameParams = params;
