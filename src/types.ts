@@ -23,11 +23,20 @@ export type WsErrorMsg = {
     message: string;
 };
 
-export type InMsg = {
-    type: 'response' | 'update';
+export type Response = {
+    type: 'response';
     id: string;
     status: 'ok' | 'error';
-    payload: unknown;
+    payload: any;
 };
+
+export type Update = {
+    type: 'update',
+    reason: string,
+    time: number,
+    payload: any
+}
+
+export type InMsg = Response | Update;
 
 export type EventListener = () => unknown;

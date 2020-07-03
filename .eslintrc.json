@@ -12,7 +12,7 @@
     },
     "rules": {
       "@typescript-eslint/explicit-function-return-type": "off",
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
       // note you must disable the base rule as it can report incorrect errors
       "no-unused-vars": "off",

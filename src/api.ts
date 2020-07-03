@@ -1,15 +1,8 @@
-import {
-    AccountInfo,
-    Casino,
-    CasinoGame,
-    Game,
-    GameSession,
-    GameSessionUpdate,
-} from './models';
-import { Connection, WalletAuth } from './connection';
-import { AuthData, ConnectionParams, EventListener } from './types';
+import {AccountInfo, Casino, CasinoGame, Game, GameSession, GameSessionUpdate,} from './models';
+import {Connection, WalletAuth} from './connection';
+import {AuthData, ConnectionParams, EventListener} from './types';
 import * as jwt from 'jsonwebtoken';
-import { TokenExpiredError } from './errors';
+import {TokenExpiredError} from './errors';
 
 const MILLIS_IN_SEC = 1000;
 // In seconds
@@ -138,6 +131,12 @@ export class Api extends Connection {
         return this.send<GameSession[]>('fetch_sessions');
     }
 
+    public async subscribe() {
+        const resp = await this.send('subscribe');
+        this.subscribed = true;
+        return resp;
+    }
+
     public fetchGlobalSessions(filter: 'all' | 'wins' | 'losts') {
         return this.send<GameSession[]>('fetch_global_sessions', {
             filter,
@@ -161,12 +160,12 @@ export class Api extends Connection {
     }
 
     public fetchSessionUpdates(sessionId: string) {
-        return this.send<GameSessionUpdate<unknown>[]>(
+        // eslint-disable-next-line
+        return this.send<GameSessionUpdate<any>[]>(
             'fetch_session_updates',
             {
                 sessionId,
-            }
-        );
+            });
     }
 
     public fetchCasinos() {
