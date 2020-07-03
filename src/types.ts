@@ -31,11 +31,11 @@ export type Response = {
 };
 
 export type Update = {
-    type: 'update',
-    reason: string,
-    time: number,
-    payload: any
-}
+    type: 'update';
+    reason: string;
+    time: number;
+    payload: any;
+};
 
 export type InMsg = Response | Update;
 

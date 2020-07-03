@@ -1,5 +1,5 @@
-import {AuthData} from './types';
-import {GameSessionUpdate} from './models';
+import { AuthData } from './types';
+import { GameSessionUpdate } from './models';
 
 // Here are listed all available events
 export type EventType = {
@@ -9,7 +9,11 @@ export type EventType = {
 };
 
 export type Callback<Type> = (value: Type) => unknown;
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
+type UnionToIntersection<U> = (U extends any
+  ? (k: U) => void
+  : never) extends (k: infer I) => void
+    ? I
+    : never;
 type AnyEvent = UnionToIntersection<EventType[keyof EventType]>;
 
 export class EventEmitter {
@@ -40,7 +44,7 @@ export class EventEmitter {
         const subs = this.subscribers[eventName];
         for (let i = 0; i < subs.length; i++) {
             if (subs[i].cb == cb) {
-                this.subscribers[eventName].splice(i, 1)
+                this.subscribers[eventName].splice(i, 1);
                 return this;
             }
         }

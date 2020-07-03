@@ -1,3 +1,12 @@
+import {
+    GameParams,
+    GameSession,
+    GameSessionUpdate,
+    UpdateTypes,
+} from './models';
+import { WAIT_ACTION_DURATION } from './constants';
+import { Api } from './api';
+import { Callback } from './eventEmitter';
 import {GameParams, GameSession, GameSessionUpdate, UpdateTypes} from './models';
 import {WAIT_ACTION_DURATION} from './constants';
 import {Api} from './api';
@@ -26,7 +35,7 @@ export class GameService extends EventEmitter {
     }
 
     public async getBalance(): Promise<string> {
-        const {balance} = await this.api.accountInfo();
+        const { balance } = await this.api.accountInfo();
         if (!balance) {
             throw new Error('No field balance in accountInfo');
         }
@@ -45,25 +54,24 @@ export class GameService extends EventEmitter {
         const startTS = new Date().getTime();
         let resolved = false;
         return new Promise<GameSessionUpdate<T>>(resolve => {
-            const cb: Callback<GameSessionUpdate<T>[]> = (updates) => {
+            const cb: Callback<GameSessionUpdate<T>[]> = updates => {
                 const validUpdate = updates.find(
                     update =>
                         update.sessionId === sessionId &&
                         updateTypes.includes(update.updateType) &&
                         new Date(update.timestamp).getTime() > startTS
                 );
-                if (!validUpdate)
-                    return;
-                this.api.eventEmitter.off("sessionUpdate", cb);
+                if (!validUpdate) return;
+                this.api.eventEmitter.off('sessionUpdate', cb);
                 if (!resolved) {
                     resolve(validUpdate);
                     resolved = true;
                 }
             };
-            this.api.eventEmitter.on("sessionUpdate", cb);
+            this.api.eventEmitter.on('sessionUpdate', cb);
             // this is to check if wanted update was fired before waitForActionComplete called
             this.api.fetchSessionUpdates(sessionId).then(cb);
-        })
+        });
     }
 
     public async newGame<T>(
@@ -79,16 +87,16 @@ export class GameService extends EventEmitter {
             params
         );
 
-        return this.waitForActionComplete<T>(
-            this.session.id,
-            [UpdateTypes.SessionStartedUpdate],
-        );
+        return this.waitForActionComplete<T>(this.session.id, [
+            UpdateTypes.SessionStartedUpdate,
+        ]);
     }
 
     public async gameAction<T>(
         actionType: number,
         params: number[],
         updateType: number | number[] = [UpdateTypes.GameFinishedUpdate],
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         duration: number = WAIT_ACTION_DURATION,
         deposit = ''
     ): Promise<GameSessionUpdate<T>> {
@@ -100,7 +108,7 @@ export class GameService extends EventEmitter {
 
         return this.waitForActionComplete<T>(
             this.session.id,
-            typeof updateType === 'number' ? [updateType] : updateType,
+            typeof updateType === 'number' ? [updateType] : updateType
         );
     }
 }

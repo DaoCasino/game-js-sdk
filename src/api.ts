@@ -1,8 +1,15 @@
-import {AccountInfo, Casino, CasinoGame, Game, GameSession, GameSessionUpdate,} from './models';
-import {Connection, WalletAuth} from './connection';
-import {AuthData, ConnectionParams, EventListener} from './types';
+import {
+    AccountInfo,
+    Casino,
+    CasinoGame,
+    Game,
+    GameSession,
+    GameSessionUpdate,
+} from './models';
+import { Connection, WalletAuth } from './connection';
+import { AuthData, ConnectionParams, EventListener } from './types';
 import * as jwt from 'jsonwebtoken';
-import {TokenExpiredError} from './errors';
+import { TokenExpiredError } from './errors';
 
 const MILLIS_IN_SEC = 1000;
 // In seconds
@@ -164,8 +171,8 @@ export class Api extends Connection {
         return this.send<GameSessionUpdate<any>[]>(
             'fetch_session_updates',
             {
-                sessionId,
-            });
+            sessionId,
+        });
     }
 
     public fetchCasinos() {

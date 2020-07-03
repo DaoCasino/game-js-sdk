@@ -1,7 +1,7 @@
-import {InMsg, Request, WsErrorMsg} from './types';
-import {wsError} from './errors';
-import {DEFAULT_PLATFORM_ID} from './constants';
-import {EventEmitter} from './eventEmitter';
+import { InMsg, Request, WsErrorMsg } from './types';
+import { wsError } from './errors';
+import { DEFAULT_PLATFORM_ID } from './constants';
+import { EventEmitter } from './eventEmitter';
 
 // Exported just for children classes, not used in api
 export type ConstructorParams = {
@@ -125,7 +125,7 @@ export class Connection {
                 return;
             case 'update':
                 if (data.reason === 'session_update')
-                    this._eventEmitter.emit("sessionUpdate", data.payload);
+                    this._eventEmitter.emit('sessionUpdate', data.payload);
         }
     }
 
