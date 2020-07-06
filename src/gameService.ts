@@ -7,13 +7,6 @@ import {
 import { WAIT_ACTION_DURATION } from './constants';
 import { Api } from './api';
 import { Callback } from './eventEmitter';
-import {GameParams, GameSession, GameSessionUpdate, UpdateTypes} from './models';
-import {WAIT_ACTION_DURATION} from './constants';
-import {Api} from './api';
-import {Callback} from "./eventEmitter";
-import { GameParams, GameSession, GameSessionUpdate } from './models';
-import { WAIT_ACTION_DURATION, UPDATE_TYPE } from './constants';
-import { Api } from './api';
 import { EventEmitter } from './eventEmitter';
 import { IframeMessagingProvider } from '@daocasino/platform-messaging/lib.browser/IframeMessagingProvider';
 

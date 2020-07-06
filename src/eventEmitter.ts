@@ -73,7 +73,7 @@ export class EventEmitter {
 
         for (let i = 0; i < subs.length; i++) {
             const sub = subs[i];
-            sub.cb(value as AnyEvent || undefined);
+            sub.cb((value as AnyEvent) || undefined);
             if (sub.once) {
                 subs.splice(i, 1);
                 i--;
