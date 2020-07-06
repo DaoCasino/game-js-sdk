@@ -138,6 +138,12 @@ export class Api extends Connection {
         return this.send<GameSession[]>('fetch_sessions');
     }
 
+    public async subscribe() {
+        const resp = await this.send('subscribe');
+        this.subscribed = true;
+        return resp;
+    }
+
     public fetchGlobalSessions(filter: 'all' | 'wins' | 'losts') {
         return this.send<GameSession[]>('fetch_global_sessions', {
             filter,
@@ -161,12 +167,12 @@ export class Api extends Connection {
     }
 
     public fetchSessionUpdates(sessionId: string) {
-        return this.send<GameSessionUpdate<unknown>[]>(
+        // eslint-disable-next-line
+        return this.send<GameSessionUpdate<any>[]>(
             'fetch_session_updates',
             {
-                sessionId,
-            }
-        );
+            sessionId,
+        });
     }
 
     public fetchCasinos() {

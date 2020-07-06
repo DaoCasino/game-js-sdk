@@ -51,6 +51,15 @@ export type GameSessionUpdate<T> = {
     data: T;
 };
 
+export enum UpdateTypes {
+    SessionCreatedUpdate = 0,
+    SessionStartedUpdate = 1,
+    GameActionRequestedUpdate = 2,
+    GameMessageUpdate = 3,
+    GameFinishedUpdate = 4,
+    GameFailedUpdate = 5,
+}
+
 export enum SessionState {
     NewGameTrxSent = 0,
     GameStartedInBC = 1,

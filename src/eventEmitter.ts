@@ -1,13 +1,20 @@
 import { AuthData } from './types';
+import { GameSessionUpdate } from './models';
 
 // Here are listed all available events
-type EventType = {
+export type EventType = {
     tokensUpdate: AuthData;
+    sessionUpdate: GameSessionUpdate<any>[];
     esc: undefined;
 };
 
-type Callback<Type> = (value: Type) => unknown;
-type AnyEvent = EventType[keyof EventType];
+export type Callback<Type> = (value: Type) => unknown;
+type UnionToIntersection<U> = (U extends any
+  ? (k: U) => void
+  : never) extends (k: infer I) => void
+    ? I
+    : never;
+type AnyEvent = UnionToIntersection<EventType[keyof EventType]>;
 
 export class EventEmitter {
     private subscribers: {
@@ -34,9 +41,13 @@ export class EventEmitter {
         cb: Callback<EventType[EvName]>
     ) {
         if (!(eventName in this.subscribers)) return this;
-        this.subscribers[eventName] = this.subscribers[eventName].filter(
-            s => s.cb != cb
-        );
+        const subs = this.subscribers[eventName];
+        for (let i = 0; i < subs.length; i++) {
+            if (subs[i].cb == cb) {
+                this.subscribers[eventName].splice(i, 1);
+                return this;
+            }
+        }
         return this;
     }
 
@@ -62,7 +73,7 @@ export class EventEmitter {
 
         for (let i = 0; i < subs.length; i++) {
             const sub = subs[i];
-            sub.cb(value || undefined);
+            sub.cb((value as AnyEvent) || undefined);
             if (sub.once) {
                 subs.splice(i, 1);
                 i--;

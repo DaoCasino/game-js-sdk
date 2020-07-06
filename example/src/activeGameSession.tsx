@@ -1,27 +1,21 @@
 import React, {useEffect, useState} from "react";
-import { CircularProgress, Typography } from "@material-ui/core";
+import {CircularProgress, Typography} from "@material-ui/core";
+import {GameService, UpdateTypes} from "@daocasino/platform-back-js-lib";
 
 
-export const ActiveGameSession: React.FC<{ sessionId: string }> = ({sessionId}) => {
+export const ActiveGameSession: React.FC<{ gameService: GameService }> = ({gameService}) => {
     const [loading, setLoading] = useState(true);
     const [winAmount, setWinAmount] = useState("");
-    const fetchUpdates = async () => {
-        return window.api!!.fetchSessionUpdates(sessionId.toString());
-    }
-    const waitForActionComplete = () => {
-        fetchUpdates().then(updates => {
-            const update = updates.find(update => update.updateType === 4);
-            if (!update) {
-                setTimeout(waitForActionComplete, 1000)
-                return;
-            }
+
+    useEffect(() => {
+        gameService.waitForUpdate(UpdateTypes.GameFinishedUpdate).then((update) => {
+            // @ts-ignore
             setWinAmount(update.data.player_win_amount)
             setLoading(false)
         })
-    }
-    useEffect(() => {
-        waitForActionComplete()
     }, [])
+
+    console.log(winAmount)
 
     if (loading)
         return <div style={{

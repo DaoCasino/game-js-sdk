@@ -1,5 +1,5 @@
 import React from 'react';
-import {Casino, Game, AccountInfo} from "@daocasino/platform-back-js-lib";
+import {Casino, Game, AccountInfo, GameService} from "@daocasino/platform-back-js-lib";
 import {Typography} from "@material-ui/core";
 import {CasinoList} from "./casinoList";
 import {GamesList} from "./gamesList";
@@ -15,7 +15,7 @@ const initialState = {
 
 type Props = {
     accountInfo: AccountInfo,
-    onStarted: (sessionId: string) => any
+    onStarted: (gameService: GameService) => any
 }
 
 class NewGame extends React.Component<Props, typeof initialState> {
@@ -61,7 +61,7 @@ class NewGame extends React.Component<Props, typeof initialState> {
             </div>}
             {selectedGame &&
             <StartGame gameId={selectedGame} casinoId={selectedCasino}
-                       onStarted={session => onStarted(session.id)}/>}
+                       onStarted={service => onStarted(service)}/>}
         </div>;
     }
 }

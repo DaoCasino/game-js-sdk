@@ -1,5 +1,5 @@
 import React from 'react';
-import {Api, AuthData, connect, AccountInfo, TokenExpiredError, WalletAuth} from "@daocasino/platform-back-js-lib";
+import {Api, AuthData, connect, AccountInfo, TokenExpiredError, WalletAuth, GameService} from "@daocasino/platform-back-js-lib";
 import {AppBar, Button, Divider, Switch, Toolbar, Typography} from "@material-ui/core";
 import NewGame from "./newGame";
 import {ActiveGameSession} from "./activeGameSession";
@@ -25,7 +25,7 @@ declare global {
 const initialState = {
     cstate: State.NOT_CONNECTED,
     accountInfo: undefined as AccountInfo | undefined,
-    sessionId: "",
+    gameService: undefined as GameService | undefined,
     mode: Mode.NEW_GAME
 }
 
@@ -76,11 +76,11 @@ class App extends React.Component<any, typeof initialState> {
                 window.api = api;
 
                 // Just to show 30 wins, lost or all sessions
-                console.log(await api.fetchGlobalSessions("all"));
-                console.log(await api.fetchGlobalSessions("wins"));
-                console.log(await api.fetchGlobalSessions("losts"));
-
-                console.log(await api.fetchCasinoSessions("all", "0"))
+                // console.log(await api.fetchGlobalSessions("all"));
+                // console.log(await api.fetchGlobalSessions("wins"));
+                // console.log(await api.fetchGlobalSessions("losts"));
+                //
+                // console.log(await api.fetchCasinoSessions("all", "0"))
 
                 // Listen to eventEmitter if it updates tokens
                 api.eventEmitter.on("tokensUpdate", (authData: AuthData) => {
@@ -126,11 +126,10 @@ class App extends React.Component<any, typeof initialState> {
                     }
                 }
 
-                // Then you call listen to subscribe to backend events and get api object
-                await api.listen(() => {
-                    // This triggers when backend sends update of game session
-                    console.log("onEvent triggered");
-                });
+
+
+                // Then you call subscribe to be able to get websocket updates
+                await api.subscribe()
 
                 // Now you are fully connected
                 this.setState({
@@ -153,7 +152,7 @@ class App extends React.Component<any, typeof initialState> {
     }
 
     render() {
-        const {cstate, mode, sessionId} = this.state;
+        const {cstate, mode, gameService} = this.state;
         const canAuth = this.walletAuth.hasToken() || localStorage.getItem("accessToken");
         return (
             <div style={{width: "100%"}}>
@@ -220,7 +219,7 @@ class App extends React.Component<any, typeof initialState> {
                                         mode: e.target.checked ? Mode.SESSION : Mode.NEW_GAME
                                     })
                                 }}
-                                disabled={!sessionId}
+                                disabled={!gameService}
                             />
                             <Typography variant={"h6"}>
                                 Active Game
@@ -228,14 +227,14 @@ class App extends React.Component<any, typeof initialState> {
                         </div>
                         {mode === Mode.NEW_GAME &&
                         <NewGame accountInfo={this.state.accountInfo}
-                                 onStarted={(sessionId) => {
+                                 onStarted={(gameService) => {
                                      this.setState({
-                                         sessionId,
+                                         gameService,
                                          mode: Mode.SESSION
                                      })
                                  }}/>}
-                        {sessionId && mode === Mode.SESSION &&
-                        <ActiveGameSession sessionId={sessionId}/>}
+                        {gameService && mode === Mode.SESSION &&
+                        <ActiveGameSession gameService={gameService}/>}
                     </div>
                     }
                 </div>

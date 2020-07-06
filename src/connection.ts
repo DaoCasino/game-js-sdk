@@ -87,6 +87,8 @@ export class Connection {
 
     protected _eventEmitter = new EventEmitter();
 
+    protected subscribed = false;
+
     protected sendMessage(data: unknown) {
         return this.webSocket.send(JSON.stringify(data));
     }
@@ -106,18 +108,24 @@ export class Connection {
 
     private onMessage(ev: MessageEvent) {
         const data = JSON.parse(ev.data) as InMsg;
-        if (data.type === 'response') {
-            const request = this.requests.find(req => req.id === data.id);
-            if (!request)
-                // Have to be unreachable unless server responses to not-sent request
+        switch (data.type) {
+            case 'response':
+                // eslint-disable-next-line no-case-declarations
+                const request = this.requests.find(req => req.id === data.id);
+                if (!request)
+                    // Have to be unreachable unless server responses to not-sent request
+                    return;
+                if (data.status === 'ok') {
+                    request.handler(data.payload);
+                } else {
+                    const errorMsg = data.payload as WsErrorMsg;
+                    const error = wsError(errorMsg.code);
+                    request.rejecter(error);
+                }
                 return;
-            if (data.status === 'ok') {
-                request.handler(data.payload);
-            } else {
-                const errorMsg = data.payload as WsErrorMsg;
-                const error = wsError(errorMsg.code);
-                request.rejecter(error);
-            }
+            case 'update':
+                if (data.reason === 'session_update')
+                    this._eventEmitter.emit('sessionUpdate', data.payload);
         }
     }
 
