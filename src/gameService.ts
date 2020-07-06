@@ -1,8 +1,12 @@
 import { GameParams, GameSession, GameSessionUpdate } from './models';
 import { WAIT_ACTION_DURATION, UPDATE_TYPE } from './constants';
 import { Api } from './api';
+import { EventEmitter } from './eventEmitter';
+import { IframeMessagingProvider } from '@daocasino/platform-messaging/lib.browser/IframeMessagingProvider';
 
-export class GameService {
+const REQUEST_TIMEOUT = 30000;
+
+export class GameService extends EventEmitter {
     private gameId: string;
     private gameParams: GameParams[];
     private casinoId: string;
@@ -10,6 +14,7 @@ export class GameService {
     private session: GameSession;
 
     constructor(api: Api, { id, params }, casinoId: string) {
+        super();
         this.api = api;
         this.gameId = id;
         this.gameParams = params;
@@ -104,4 +109,30 @@ export class GameService {
             duration
         );
     }
+}
+
+// call on iframe
+export async function getRemoteGameSerivce(
+    requestTimeout: number = REQUEST_TIMEOUT
+): Promise<GameService> {
+    const iframeMessagingProvider = (await IframeMessagingProvider.create(
+        'child'
+    )) as IframeMessagingProvider;
+
+    const service = iframeMessagingProvider.getRemoteService<GameService>(
+        'GameService',
+        requestTimeout
+    );
+
+    document.addEventListener(
+        'keydown',
+        e => {
+            if (e.keyCode === 27) {
+                service.emit('esc');
+            }
+        },
+        false
+    );
+
+    return service;
 }

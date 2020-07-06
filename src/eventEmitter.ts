@@ -3,6 +3,7 @@ import { AuthData } from './types';
 // Here are listed all available events
 type EventType = {
     tokensUpdate: AuthData;
+    esc: undefined;
 };
 
 type Callback<Type> = (value: Type) => unknown;
@@ -54,14 +55,14 @@ export class EventEmitter {
     /** @internal */
     public emit<EvName extends keyof EventType>(
         eventName: EvName,
-        value: EventType[EvName]
+        value?: EventType[EvName]
     ) {
         const subs = this.subscribers[eventName];
         if (!subs) return;
 
         for (let i = 0; i < subs.length; i++) {
             const sub = subs[i];
-            sub.cb(value);
+            sub.cb(value || undefined);
             if (sub.once) {
                 subs.splice(i, 1);
                 i--;
