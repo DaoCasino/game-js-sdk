@@ -6,8 +6,7 @@ import {
 } from './models';
 import { WAIT_ACTION_DURATION } from './constants';
 import { Api } from './api';
-import { Callback } from './eventEmitter';
-import { EventEmitter } from './eventEmitter';
+import { Callback, EventEmitter } from './eventEmitter';
 import { IframeMessagingProvider } from '@daocasino/platform-messaging/lib.browser/IframeMessagingProvider';
 
 const REQUEST_TIMEOUT = 30000;
@@ -70,7 +69,10 @@ export class GameService extends EventEmitter {
     public async newGame<T>(
         deposit: string,
         actionType: number,
-        params: number[]
+        params: number[],
+        updateType: number | number[] = [UpdateTypes.GameFinishedUpdate],
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        duration: number = WAIT_ACTION_DURATION
     ): Promise<GameSessionUpdate<T>> {
         this.session = await this.api.newGame(
             this.casinoId,
@@ -80,9 +82,10 @@ export class GameService extends EventEmitter {
             params
         );
 
-        return this.waitForActionComplete<T>(this.session.id, [
-            UpdateTypes.SessionStartedUpdate,
-        ]);
+        return this.waitForActionComplete<T>(
+            this.session.id,
+            typeof updateType === 'number' ? [updateType] : updateType
+        );
     }
 
     public async gameAction<T>(
