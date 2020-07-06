@@ -57,8 +57,8 @@ export class GameService extends EventEmitter {
                 if (!validUpdate) return;
                 this.api.eventEmitter.off('sessionUpdate', cb);
                 if (!resolved) {
-                    resolve(validUpdate);
                     resolved = true;
+                    resolve(validUpdate);
                 }
             };
             this.api.eventEmitter.on('sessionUpdate', cb);
