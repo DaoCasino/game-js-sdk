@@ -141,7 +141,7 @@ export class GameService extends EventEmitter {
     public async gameActionMultiUpdate<T>(
         actionType: number,
         params: number[],
-        updateType: number[] = [UpdateTypes.GameFinishedUpdate],
+        updateTypes: number[] = [UpdateTypes.GameFinishedUpdate],
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         duration: number = WAIT_ACTION_DURATION,
         deposit = ''
@@ -152,7 +152,7 @@ export class GameService extends EventEmitter {
 
         await this.api.gameAction(this.session.id, actionType, params, deposit);
 
-        return this.waitForActionsComplete<T>(this.session.id, updateType);
+        return this.waitForActionsComplete<T>(this.session.id, updateTypes);
     }
 }
 
