@@ -66,6 +66,17 @@ export class GameService extends EventEmitter {
         });
     }
 
+    private waitForActionsComplete<T>(
+        sessionId: string,
+        updateTypes: number[]
+    ): Promise<Array<GameSessionUpdate<T>>> {
+        return Promise.all(
+            updateTypes.map(ut =>
+                this.waitForActionComplete<T>(sessionId, [ut])
+            )
+        );
+    }
+
     public async newGame<T>(
         deposit: string,
         actionType: number,
@@ -88,6 +99,25 @@ export class GameService extends EventEmitter {
         );
     }
 
+    public async newGameMultiUpdate<T>(
+        deposit: string,
+        actionType: number,
+        params: number[],
+        updateTypes: number[] = [UpdateTypes.GameFinishedUpdate],
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        duration: number = WAIT_ACTION_DURATION
+    ): Promise<Array<GameSessionUpdate<T>>> {
+        this.session = await this.api.newGame(
+            this.casinoId,
+            this.gameId,
+            deposit,
+            actionType,
+            params
+        );
+
+        return this.waitForActionsComplete<T>(this.session.id, updateTypes);
+    }
+
     public async gameAction<T>(
         actionType: number,
         params: number[],
@@ -106,6 +136,23 @@ export class GameService extends EventEmitter {
             this.session.id,
             typeof updateType === 'number' ? [updateType] : updateType
         );
+    }
+
+    public async gameActionMultiUpdate<T>(
+        actionType: number,
+        params: number[],
+        updateTypes: number[] = [UpdateTypes.GameFinishedUpdate],
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        duration: number = WAIT_ACTION_DURATION,
+        deposit = ''
+    ): Promise<Array<GameSessionUpdate<T>>> {
+        if (!this.session) {
+            throw new Error('No game session');
+        }
+
+        await this.api.gameAction(this.session.id, actionType, params, deposit);
+
+        return this.waitForActionsComplete<T>(this.session.id, updateTypes);
     }
 }
 
