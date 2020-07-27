@@ -17,6 +17,7 @@ export class GameService extends EventEmitter {
     private casinoId: string;
     private api: Api;
     private session: GameSession;
+    private resolved: Map<string, number>;
 
     constructor(api: Api, { id, params }, casinoId: string) {
         super();
@@ -24,6 +25,7 @@ export class GameService extends EventEmitter {
         this.gameId = id;
         this.gameParams = params;
         this.casinoId = casinoId;
+        this.resolved = new Map();
     }
 
     public async getBalance(): Promise<string> {
@@ -43,22 +45,46 @@ export class GameService extends EventEmitter {
         sessionId: string,
         updateTypes: number[]
     ): Promise<GameSessionUpdate<T>> {
-        const startTS = new Date().getTime();
         let resolved = false;
+        const key = sessionId + ':' + updateTypes.join('_');
+
         return new Promise<GameSessionUpdate<T>>(resolve => {
             const cb: Callback<GameSessionUpdate<T>[]> = updates => {
+                if (resolved) {
+                    console.log('waitAction: resolved', sessionId, updateTypes);
+                    return;
+                }
+
+                // check updates array for changes
+                const prevUpdatesLength = this.resolved.get(key);
+                if (prevUpdatesLength && prevUpdatesLength === updates.length) {
+                    console.log(
+                        'waitAction: skip',
+                        sessionId,
+                        updateTypes,
+                        updates.length
+                    );
+                    return; // skip
+                }
+                this.resolved.set(key, updates.length);
+
                 const validUpdate = updates.find(
                     update =>
                         update.sessionId === sessionId &&
-                        updateTypes.includes(update.updateType) &&
-                        new Date(update.timestamp).getTime() > startTS
+                        updateTypes.includes(update.updateType)
                 );
-                if (!validUpdate) return;
-                this.api.eventEmitter.off('sessionUpdate', cb);
-                if (!resolved) {
-                    resolved = true;
-                    resolve(validUpdate);
+                if (!validUpdate) {
+                    console.log(
+                        'waitAction: not valid update',
+                        sessionId,
+                        updateTypes,
+                        updates
+                    );
+                    return;
                 }
+                this.api.eventEmitter.off('sessionUpdate', cb);
+                resolved = true;
+                resolve(validUpdate);
             };
             this.api.eventEmitter.on('sessionUpdate', cb);
             // this is to check if wanted update was fired before waitForActionComplete called
