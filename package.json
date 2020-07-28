@@ -17,7 +17,8 @@
     "prepare": "npm run build",
     "prebuild": "rm -rf dist",
     "build": "tsc",
-    "lint": "eslint 'src/**/*.{ts,tsx}'"
+    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --require ts-node/register src/tests/**/*.*.ts"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,11 +30,14 @@
     "@types/jsonwebtoken": "^8.5.0",
     "@typescript-eslint/eslint-plugin": "^2.34.0",
     "@typescript-eslint/parser": "^2.34.0",
+    "chai": "^4.2.0",
     "eslint": "^6.6.0",
     "eslint-config-prettier": "^6.5.0",
     "eslint-plugin-prettier": "^3.1.4",
     "husky": "^4.2.5",
+    "mocha": "^8.0.1",
     "prettier": "^1.19.1",
+    "ts-node": "^8.10.2",
     "typescript": "^3.9.7"
   },
   "husky": {
