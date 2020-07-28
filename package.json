@@ -18,6 +18,8 @@
     "prebuild": "rm -rf dist",
     "build": "tsc",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "prepush": "npm run lint",
+    "push": "npm run test",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --require ts-node/register src/tests/**/*.*.ts"
   },
   "main": "dist/index.js",
@@ -42,7 +44,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "npm run lint"
+      "pre-push": "npm run push"
     }
   }
 }
