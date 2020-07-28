@@ -52,29 +52,22 @@ export class GameService extends EventEmitter {
                     return;
                 }
 
+                // console.log('waitForActionComplete callback', sessionId, updateTypes);
+
                 // check updates array for changes
-                const prevUpdatesLength = this.resolved.get(key);
-                if (prevUpdatesLength && prevUpdatesLength === updates.length) {
-                    console.log(
-                        'waitAction: skip',
-                        sessionId,
-                        updateTypes,
-                        updates.length
-                    );
-                    return; // skip
-                }
-                this.resolved.set(key, updates.length);
+                const prevIndex = this.resolved.get(key);
+                // console.log('get', { key, prevIndex });
 
-                const items = prevUpdatesLength
-                    ? updates.splice(prevUpdatesLength)
-                    : updates;
+                const items = prevIndex ? updates.splice(prevIndex) : updates;
 
-                const validUpdate = items.find(
+                // console.log({ items, updates });
+
+                const validUpdateIndex = items.findIndex(
                     update =>
                         update.sessionId === sessionId &&
                         updateTypes.includes(update.updateType)
                 );
-                if (!validUpdate) {
+                if (validUpdateIndex === -1) {
                     console.log(
                         'waitAction: not valid update',
                         sessionId,
@@ -85,7 +78,17 @@ export class GameService extends EventEmitter {
                 }
                 this.api.eventEmitter.off('sessionUpdate', cb);
                 resolved = true;
-                resolve(validUpdate);
+
+                const nextIndex = ((): number => {
+                    const prev = prevIndex || 0;
+                    const next = validUpdateIndex === 0 ? 1 : validUpdateIndex;
+                    return prev + next;
+                })();
+
+                this.resolved.set(key, nextIndex);
+                // console.log('set', { key, value: nextIndex });
+
+                resolve(items[validUpdateIndex]);
             };
             this.api.eventEmitter.on('sessionUpdate', cb);
             // this is to check if wanted update was fired before waitForActionComplete called

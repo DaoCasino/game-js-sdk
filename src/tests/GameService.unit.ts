@@ -1,5 +1,5 @@
 import { describe, it } from 'mocha';
-//import { expect } from 'chai';
+import { expect } from 'chai';
 
 import { AccountInfo, GameSessionUpdate, GameSession } from '../models';
 
@@ -18,11 +18,9 @@ const randomString = () =>
         .substring(2, 15);
 
 class ApiMock implements Api {
-    private updatesCount: number;
     eventEmitter: EventEmitter;
     constructor() {
         this.eventEmitter = new EventEmitter();
-        this.updatesCount = 0;
     }
     accountInfo() {
         const info: AccountInfo = {
@@ -44,14 +42,11 @@ class ApiMock implements Api {
         };
 
         const updates = [];
-        for (let i = 0; i < this.updatesCount; i++) {
-            updates.push(base);
-        }
+
         updates.push({ ...base, updateType: 3, timestamp: '1' });
         updates.push({ ...base, updateType: 3, timestamp: '2' });
         updates.push({ ...base, updateType: 4, timestamp: '3' });
 
-        this.updatesCount++;
         return Promise.resolve(updates);
     }
     newGame(
@@ -81,8 +76,9 @@ class ApiMock implements Api {
 
 describe('GameService unit test', () => {
     const api = new ApiMock();
-    const service = new GameService(api, { id: 0, params: {} }, '0');
     it('waitForActionComplete', async () => {
+        const service = new GameService(api, { id: 0, params: {} }, '0'); // resolved global
+
         const updateTypes = [3, 4];
         const params = [0];
         const actionType = 0;
@@ -94,13 +90,59 @@ describe('GameService unit test', () => {
             updateTypes,
             DURATION
         );
-        console.log({ test });
+        expect(test.timestamp).to.equal('1');
+        expect(test.updateType).to.equal(3);
+
         const test2 = await service.gameAction(
             actionType,
             params,
             updateTypes,
             DURATION
         );
-        console.log({ test2 });
+
+        expect(test2.timestamp).to.equal('2');
+        expect(test2.updateType).to.equal(3);
+
+        const test3 = await service.gameAction(
+            actionType,
+            params,
+            updateTypes,
+            DURATION
+        );
+
+        expect(test3.timestamp).to.equal('3');
+        expect(test3.updateType).to.equal(4);
+    });
+
+    it('waitForActionsComplete', async () => {
+        const service = new GameService(api, { id: 0, params: {} }, '0');
+
+        const updateTypes = [4, 3];
+        const params = [0];
+        const actionType = 0;
+
+        const test = await service.newGameMultiUpdate(
+            '0',
+            actionType,
+            params,
+            updateTypes,
+            DURATION
+        );
+
+        expect(test[0].timestamp).to.equal('3');
+        expect(test[0].updateType).to.equal(4);
+
+        expect(test[1].timestamp).to.equal('1');
+        expect(test[1].updateType).to.equal(3);
+
+        const test2 = await service.gameActionMultiUpdate(
+            actionType,
+            params,
+            [3],
+            DURATION
+        );
+
+        expect(test2[0].timestamp).to.equal('2');
+        expect(test2[0].updateType).to.equal(3);
     });
 });
