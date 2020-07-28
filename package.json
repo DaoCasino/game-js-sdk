@@ -1,6 +1,6 @@
 {
   "name": "@daocasino/platform-back-js-lib",
-  "version": "1.5.8",
+  "version": "1.5.9",
   "description": "Use this to connect your frontend to the platform backend",
   "license": "MIT",
   "repository": {
@@ -22,19 +22,19 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@daocasino/platform-messaging": "0.0.4",
+    "@daocasino/platform-messaging": "0.0.5",
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.0",
-    "@typescript-eslint/eslint-plugin": "^2.7.0",
-    "@typescript-eslint/parser": "^2.7.0",
+    "@typescript-eslint/eslint-plugin": "^2.34.0",
+    "@typescript-eslint/parser": "^2.34.0",
     "eslint": "^6.6.0",
     "eslint-config-prettier": "^6.5.0",
-    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-prettier": "^3.1.4",
     "husky": "^4.2.5",
     "prettier": "^1.19.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.7"
   },
   "husky": {
     "hooks": {
