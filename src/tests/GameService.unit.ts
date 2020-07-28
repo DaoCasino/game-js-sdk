@@ -22,7 +22,7 @@ class ApiMock implements Api {
     eventEmitter: EventEmitter;
     constructor() {
         this.eventEmitter = new EventEmitter();
-        this.updatesCount = 0
+        this.updatesCount = 0;
     }
     accountInfo() {
         const info: AccountInfo = {
@@ -74,12 +74,7 @@ class ApiMock implements Api {
         return Promise.resolve(session);
     }
 
-    gameAction(
-        sessionId: string,
-        actionType: number,
-        params: number[],
-        deposit?: string
-    ) {
+    gameAction(_: string, __: number, ___: number[], ____?: string) {
         return Promise.resolve();
     }
 }

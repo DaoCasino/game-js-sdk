@@ -182,5 +182,3 @@ export class GameService extends EventEmitter {
         return this.waitForActionsComplete<T>(this.session.id, updateTypes);
     }
 }
-
-
