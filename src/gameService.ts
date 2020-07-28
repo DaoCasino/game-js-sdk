@@ -56,6 +56,7 @@ export class GameService extends EventEmitter {
 
                 // check updates array for changes
                 const prevIndex = this.resolved.get(key);
+                const updatesCopy = [...updates]; // for debug
                 // console.log('get', { key, prevIndex });
 
                 const items = prevIndex ? updates.splice(prevIndex) : updates;
@@ -68,12 +69,13 @@ export class GameService extends EventEmitter {
                         updateTypes.includes(update.updateType)
                 );
                 if (validUpdateIndex === -1) {
-                    console.log(
-                        'waitAction: not valid update',
+                    console.log('waitAction: not valid update', {
                         sessionId,
                         updateTypes,
-                        items
-                    );
+                        prevIndex,
+                        updates: updatesCopy,
+                        items,
+                    });
                     return;
                 }
                 this.api.eventEmitter.off('sessionUpdate', cb);
@@ -81,12 +83,22 @@ export class GameService extends EventEmitter {
 
                 const nextIndex = ((): number => {
                     const prev = prevIndex || 0;
-                    const next = validUpdateIndex === 0 ? 1 : validUpdateIndex;
+                    const next = validUpdateIndex + 1;
                     return prev + next;
                 })();
 
                 this.resolved.set(key, nextIndex);
                 // console.log('set', { key, value: nextIndex });
+
+                console.log('waitAction: valid update', {
+                    sessionId,
+                    updateTypes,
+                    prevIndex,
+                    nextIndex,
+                    updates: updatesCopy,
+                    items,
+                    validUpdateIndex,
+                });
 
                 resolve(items[validUpdateIndex]);
             };
