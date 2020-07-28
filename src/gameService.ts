@@ -5,11 +5,8 @@ import {
     UpdateTypes,
 } from './models';
 import { WAIT_ACTION_DURATION } from './constants';
-import { Api } from './api';
+import { Api } from './interfaces';
 import { Callback, EventEmitter } from './eventEmitter';
-import { IframeMessagingProvider } from '@daocasino/platform-messaging/lib.browser/IframeMessagingProvider';
-
-const REQUEST_TIMEOUT = 30000;
 
 export class GameService extends EventEmitter {
     private gameId: string;
@@ -55,40 +52,55 @@ export class GameService extends EventEmitter {
                     return;
                 }
 
+                // console.log('waitForActionComplete callback', sessionId, updateTypes);
+
                 // check updates array for changes
-                const prevUpdatesLength = this.resolved.get(key);
-                if (prevUpdatesLength && prevUpdatesLength === updates.length) {
-                    console.log(
-                        'waitAction: skip',
-                        sessionId,
-                        updateTypes,
-                        updates.length
-                    );
-                    return; // skip
-                }
-                this.resolved.set(key, updates.length);
+                const prevIndex = this.resolved.get(key);
+                const updatesCopy = [...updates]; // for debug
+                // console.log('get', { key, prevIndex });
 
-                const items = prevUpdatesLength
-                    ? updates.splice(prevUpdatesLength)
-                    : updates;
+                const items = prevIndex ? updates.splice(prevIndex) : updates;
 
-                const validUpdate = items.find(
+                // console.log({ items, updates });
+
+                const validUpdateIndex = items.findIndex(
                     update =>
                         update.sessionId === sessionId &&
                         updateTypes.includes(update.updateType)
                 );
-                if (!validUpdate) {
-                    console.log(
-                        'waitAction: not valid update',
+                if (validUpdateIndex === -1) {
+                    console.log('waitAction: not valid update', {
                         sessionId,
                         updateTypes,
-                        items
-                    );
+                        prevIndex,
+                        updates: updatesCopy,
+                        items,
+                    });
                     return;
                 }
                 this.api.eventEmitter.off('sessionUpdate', cb);
                 resolved = true;
-                resolve(validUpdate);
+
+                const nextIndex = ((): number => {
+                    const prev = prevIndex || 0;
+                    const next = validUpdateIndex + 1;
+                    return prev + next;
+                })();
+
+                this.resolved.set(key, nextIndex);
+                // console.log('set', { key, value: nextIndex });
+
+                console.log('waitAction: valid update', {
+                    sessionId,
+                    updateTypes,
+                    prevIndex,
+                    nextIndex,
+                    updates: updatesCopy,
+                    items,
+                    validUpdateIndex,
+                });
+
+                resolve(items[validUpdateIndex]);
             };
             this.api.eventEmitter.on('sessionUpdate', cb);
             // this is to check if wanted update was fired before waitForActionComplete called
@@ -184,30 +196,4 @@ export class GameService extends EventEmitter {
 
         return this.waitForActionsComplete<T>(this.session.id, updateTypes);
     }
-}
-
-// call on iframe
-export async function getRemoteGameSerivce(
-    requestTimeout: number = REQUEST_TIMEOUT
-): Promise<GameService> {
-    const iframeMessagingProvider = (await IframeMessagingProvider.create(
-        'child'
-    )) as IframeMessagingProvider;
-
-    const service = iframeMessagingProvider.getRemoteService<GameService>(
-        'GameService',
-        requestTimeout
-    );
-
-    document.addEventListener(
-        'keydown',
-        e => {
-            if (e.keyCode === 27) {
-                service.emit('esc');
-            }
-        },
-        false
-    );
-
-    return service;
 }

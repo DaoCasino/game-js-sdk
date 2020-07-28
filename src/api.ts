@@ -10,12 +10,13 @@ import { Connection, WalletAuth } from './connection';
 import { AuthData, ConnectionParams, EventListener } from './types';
 import * as jwt from 'jsonwebtoken';
 import { TokenExpiredError } from './errors';
+import { Api as ApiInterface } from './interfaces';
 
 const MILLIS_IN_SEC = 1000;
 // In seconds
 const PRE_REFRESH_TOKEN_TIME = 10;
 
-export class Api extends Connection {
+export class Api extends Connection implements ApiInterface {
     private authData?: AuthData;
 
     private eventListener?: EventListener;
