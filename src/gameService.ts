@@ -68,7 +68,11 @@ export class GameService extends EventEmitter {
                 }
                 this.resolved.set(key, updates.length);
 
-                const validUpdate = updates.find(
+                const items = prevUpdatesLength
+                    ? updates.splice(prevUpdatesLength)
+                    : updates;
+
+                const validUpdate = items.find(
                     update =>
                         update.sessionId === sessionId &&
                         updateTypes.includes(update.updateType)
@@ -78,7 +82,7 @@ export class GameService extends EventEmitter {
                         'waitAction: not valid update',
                         sessionId,
                         updateTypes,
-                        updates
+                        items
                     );
                     return;
                 }
