@@ -186,7 +186,7 @@ export class GameService extends EventEmitter {
                         result,
                     });
 
-                    // console.log({ result });
+                    this.api.eventEmitter.off('sessionUpdate', cb);
                     resolve(result);
                 } else {
                     console.log('waitAction: not valid update', {
