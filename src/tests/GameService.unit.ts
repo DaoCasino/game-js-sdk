@@ -150,6 +150,5 @@ describe('GameService unit test', () => {
 
         expect(test2[1].timestamp).to.equal('4');
         expect(test2[1].updateType).to.equal(4);
-
     });
 });
