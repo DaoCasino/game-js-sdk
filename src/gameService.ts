@@ -52,7 +52,11 @@ export class GameService extends EventEmitter {
                     return;
                 }
 
-                // console.log('waitForActionComplete callback', sessionId, updateTypes);
+                // console.log(
+                //     'waitForActionComplete callback',
+                //     sessionId,
+                //     updateTypes
+                // );
 
                 // check updates array for changes
                 const prevIndex = this.resolved.get(key);
@@ -61,7 +65,7 @@ export class GameService extends EventEmitter {
 
                 const items = prevIndex ? updates.splice(prevIndex) : updates;
 
-                // console.log({ items, updates });
+                // console.log({ items, updates: updatesCopy });
 
                 const validUpdateIndex = items.findIndex(
                     update =>
@@ -112,11 +116,90 @@ export class GameService extends EventEmitter {
         sessionId: string,
         updateTypes: number[]
     ): Promise<Array<GameSessionUpdate<T>>> {
-        return Promise.all(
-            updateTypes.map(ut =>
-                this.waitForActionComplete<T>(sessionId, [ut])
-            )
-        );
+        const key = sessionId + ':' + updateTypes.join('_');
+
+        return new Promise<Array<GameSessionUpdate<T>>>(resolve => {
+            const result = [];
+            const resolved = {};
+            const cb: Callback<GameSessionUpdate<T>[]> = updates => {
+                // console.log('waitForActionsComplete callback', sessionId, updateTypes);
+
+                updateTypes.forEach(updateType => {
+                    if (updateType in resolved) {
+                        return;
+                    }
+                    // console.log('find update type', updateType);
+                    const updateKey = key + '|' + updateType;
+                    const prevIndex = this.resolved.get(updateKey);
+
+                    // const updatesCopy = [...updates]; // for debug
+                    // console.log('get', { updateKey, prevIndex });
+
+                    const items = prevIndex
+                        ? [...updates].splice(prevIndex)
+                        : updates;
+
+                    const validUpdateIndex = items.findIndex(
+                        update =>
+                            update.sessionId === sessionId &&
+                            update.updateType === updateType
+                    );
+
+                    if (validUpdateIndex === -1) {
+                        return;
+                    }
+                    resolved[updateType] = true;
+
+                    const nextIndex = ((): number => {
+                        const prev = prevIndex || 0;
+                        const next = validUpdateIndex + 1;
+                        return prev + next;
+                    })();
+
+                    this.resolved.set(updateKey, nextIndex);
+                    // console.log('set', { updateKey, value: nextIndex });
+                    result.push({
+                        ...items[validUpdateIndex],
+                        nextIndex,
+                    }); // for sort
+                });
+
+                const updateIndex = {};
+                updateTypes.forEach(updateType => {
+                    updateIndex[updateType] = this.resolved.get(
+                        key + '|' + updateType
+                    );
+                });
+
+                if (result.length > 0) {
+                    result.sort((a, b) => {
+                        if (a.nextIndex < b.nextIndex) return -1;
+                        if (a.nextIndex > b.nextIndex) return 1;
+                        return 0;
+                    });
+
+                    console.log('waitAction: valid update', {
+                        sessionId,
+                        updateTypes,
+                        updateIndex,
+                        updates,
+                        result,
+                    });
+
+                    // console.log({ result });
+                    resolve(result);
+                } else {
+                    console.log('waitAction: not valid update', {
+                        sessionId,
+                        updateTypes,
+                        updates,
+                    });
+                }
+            };
+            this.api.eventEmitter.on('sessionUpdate', cb);
+            // this is to check if wanted update was fired before waitForActionComplete called
+            this.api.fetchSessionUpdates(sessionId).then(cb);
+        });
     }
 
     public async newGame<T>(

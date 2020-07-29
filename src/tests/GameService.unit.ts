@@ -129,19 +129,21 @@ describe('GameService unit test', () => {
             DURATION
         );
 
-        expect(test[0].timestamp).to.equal('3');
-        expect(test[0].updateType).to.equal(4);
+        expect(test.length).to.equal(2);
+        expect(test[0].timestamp).to.equal('1');
+        expect(test[0].updateType).to.equal(3);
 
-        expect(test[1].timestamp).to.equal('1');
-        expect(test[1].updateType).to.equal(3);
+        expect(test[1].timestamp).to.equal('3');
+        expect(test[1].updateType).to.equal(4);
 
         const test2 = await service.gameActionMultiUpdate(
             actionType,
             params,
-            [3],
+            updateTypes,
             DURATION
         );
 
+        expect(test2.length).to.equal(1);
         expect(test2[0].timestamp).to.equal('2');
         expect(test2[0].updateType).to.equal(3);
     });
