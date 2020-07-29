@@ -49,6 +49,7 @@ export type GameSessionUpdate<T> = {
     updateType: number;
     timestamp: string;
     data: T;
+    nextIndex?: number;
 };
 
 export enum UpdateTypes {

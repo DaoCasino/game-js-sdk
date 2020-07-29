@@ -104,7 +104,7 @@ export class GameService extends EventEmitter {
                     validUpdateIndex,
                 });
 
-                resolve(items[validUpdateIndex]);
+                resolve({ ...items[validUpdateIndex], nextIndex });
             };
             this.api.eventEmitter.on('sessionUpdate', cb);
             // this is to check if wanted update was fired before waitForActionComplete called
@@ -112,11 +112,25 @@ export class GameService extends EventEmitter {
         });
     }
 
-    private waitForActionsComplete<T>(
+    private async waitForActionsComplete<T>(
         sessionId: string,
         updateTypes: number[]
     ): Promise<Array<GameSessionUpdate<T>>> {
-        const key = sessionId + ':' + updateTypes.join('_');
+        const result = await Promise.all(
+            updateTypes.map(updateType =>
+                this.waitForActionComplete<T>(sessionId, [updateType])
+            )
+        );
+        if (result.length > 0) {
+            result.sort((a, b) => {
+                if (a.nextIndex < b.nextIndex) return -1;
+                if (a.nextIndex > b.nextIndex) return 1;
+                return 0;
+            });
+        }
+        return result;
+
+        /* const key = sessionId + ':' + updateTypes.join('_');
 
         return new Promise<Array<GameSessionUpdate<T>>>(resolve => {
             const result = [];
@@ -200,6 +214,7 @@ export class GameService extends EventEmitter {
             // this is to check if wanted update was fired before waitForActionComplete called
             this.api.fetchSessionUpdates(sessionId).then(cb);
         });
+        */
     }
 
     public async newGame<T>(
