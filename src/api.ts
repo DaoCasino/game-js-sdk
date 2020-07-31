@@ -57,6 +57,18 @@ export class Api extends Connection implements ApiInterface {
         return auth.json() as Promise<AuthData>;
     }
 
+    public async logout(authData: AuthData) {
+        await fetch(`${this.params.httpUrl}/logout`, {
+            method: 'POST',
+            body: JSON.stringify({
+                accessToken: authData.accessToken,
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+    }
+
     public async auth(authData: AuthData) {
         const planRefresh = () => {
             const refresh = async () => {

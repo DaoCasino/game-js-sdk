@@ -50,11 +50,20 @@ class App extends React.Component<any, typeof initialState> {
 
         this.connect = this.connect.bind(this)
         this.authWithWallet = this.authWithWallet.bind(this)
+        this.logout = this.logout.bind(this)
     }
 
     authWithWallet() {
         // Redirect to DaoWallet
         this.walletAuth.auth(config.casinoName);
+    }
+
+    logout() {
+        const accessToken = localStorage.getItem("accessToken");
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (!accessToken || !refreshToken)
+            return;
+        window.api?.logout({accessToken, refreshToken});
     }
 
     connect() {
@@ -126,8 +135,6 @@ class App extends React.Component<any, typeof initialState> {
                     }
                 }
 
-
-
                 // Then you call subscribe to be able to get websocket updates
                 await api.subscribe()
 
@@ -172,6 +179,10 @@ class App extends React.Component<any, typeof initialState> {
                     alignItems: "center",
                     padding: 10
                 }}>
+                    <Button onClick={this.logout} disabled={!(cstate === State.NOT_CONNECTED && canAuth)} size={"large"}
+                            color={"primary"} variant={"contained"} style={{margin: 10}}>
+                        Logout
+                    </Button>
                     <Button onClick={this.authWithWallet} disabled={!(cstate === State.NOT_CONNECTED && !canAuth)} size={"large"}
                             color={"primary"} variant={"contained"} style={{margin: 10}}>
                         Auth with wallet
