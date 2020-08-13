@@ -20,7 +20,7 @@ export class Api extends Connection implements ApiInterface {
     private authData?: AuthData;
 
     private eventListener?: EventListener;
-    private tokenRefreshTimer;
+    private tokenRefreshTimer = undefined;
 
     private refreshedTokens: string[] = [];
 
@@ -29,7 +29,9 @@ export class Api extends Connection implements ApiInterface {
     }
 
     protected onClose(ev: CloseEvent) {
-        if (this.tokenRefreshTimer) clearTimeout(this.tokenRefreshTimer);
+        if (this.tokenRefreshTimer) {
+            clearTimeout(this.tokenRefreshTimer);
+        }
         super.onClose(ev);
     }
 
@@ -100,10 +102,15 @@ export class Api extends Connection implements ApiInterface {
 
             if (this.params.autoRefresh) {
                 const refreshAfter = exp - nowTime - PRE_REFRESH_TOKEN_TIME;
-                this.tokenRefreshTimer = setTimeout(
-                    refresh,
-                    refreshAfter * MILLIS_IN_SEC
-                );
+                if (this.tokenRefreshTimer) {
+                    clearTimeout(this.tokenRefreshTimer);
+                }
+                if (this.webSocket.readyState === WebSocket.OPEN) {
+                    this.tokenRefreshTimer = setTimeout(
+                        refresh,
+                        refreshAfter * MILLIS_IN_SEC
+                    );
+                }
             }
         };
 
