@@ -80,6 +80,9 @@ export class Api extends Connection implements ApiInterface {
                 'Content-Type': 'application/json',
             },
         });
+        // remove tokens from localStorage
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
     }
 
     public async auth(authData: AuthData) {
@@ -89,13 +92,13 @@ export class Api extends Connection implements ApiInterface {
                     this.authData = await this.refreshToken(this.authData);
                     this.eventEmitter.emit('tokensUpdate', this.authData);
                     // save tokens directly to localStorage
-                    localStorage.setItem("accessToken", authData.accessToken);
-                    localStorage.setItem("refreshToken", authData.refreshToken);
+                    localStorage.setItem('accessToken', authData.accessToken);
+                    localStorage.setItem('refreshToken', authData.refreshToken);
                     planRefresh();
                 } catch (e) {
                     // remove tokens from localStorage if expired
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("refreshToken");
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
                     console.error('Token autoRefresh failed');
                 }
             };
@@ -127,8 +130,8 @@ export class Api extends Connection implements ApiInterface {
             });
             this.authData = authData;
             // save tokens directly to localStorage
-            localStorage.setItem("accessToken", authData.accessToken);
-            localStorage.setItem("refreshToken", authData.refreshToken);
+            localStorage.setItem('accessToken', authData.accessToken);
+            localStorage.setItem('refreshToken', authData.refreshToken);
             planRefresh();
             return accountInfo;
         } catch (e) {
@@ -138,8 +141,8 @@ export class Api extends Connection implements ApiInterface {
                     authData = await this.refreshToken(authData);
                 } catch (refreshE) {
                     // remove tokens from localStorage if expired
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("refreshToken");
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
                     // Throw e just to be more comfortable catching in front
                     throw e;
                 }
@@ -149,8 +152,8 @@ export class Api extends Connection implements ApiInterface {
                 });
                 this.eventEmitter.emit('tokensUpdate', authData);
                 // save tokens directly to localStorage
-                localStorage.setItem("accessToken", authData.accessToken);
-                localStorage.setItem("refreshToken", authData.refreshToken);
+                localStorage.setItem('accessToken', authData.accessToken);
+                localStorage.setItem('refreshToken', authData.refreshToken);
                 this.authData = authData;
                 planRefresh();
                 return accountInfo;
