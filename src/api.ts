@@ -87,13 +87,21 @@ export class Api extends Connection implements ApiInterface {
 
     public async auth(authData: AuthData) {
         const planRefresh = () => {
+            console.log('SDK planRefresh');
             const refresh = async () => {
+                console.log('SDK refresh');
                 try {
                     this.authData = await this.refreshToken(this.authData);
                     this.eventEmitter.emit('tokensUpdate', this.authData);
                     // save tokens directly to localStorage
-                    localStorage.setItem('accessToken', authData.accessToken);
-                    localStorage.setItem('refreshToken', authData.refreshToken);
+                    localStorage.setItem(
+                        'accessToken',
+                        this.authData.accessToken
+                    );
+                    localStorage.setItem(
+                        'refreshToken',
+                        this.authData.refreshToken
+                    );
                     planRefresh();
                 } catch (e) {
                     // remove tokens from localStorage if expired
@@ -105,12 +113,14 @@ export class Api extends Connection implements ApiInterface {
             const decoded = jwt.decode(this.authData.accessToken, {
                 complete: true,
             });
+            console.log('SDK token', { decoded });
             const exp = (decoded as { payload: { exp: number } }).payload!!.exp;
 
             const nowTime = new Date().getTime() / MILLIS_IN_SEC;
 
             if (this.params.autoRefresh) {
                 const refreshAfter = exp - nowTime - PRE_REFRESH_TOKEN_TIME;
+                console.log('SDK autoRefresh params', { refreshAfter });
                 if (this.tokenRefreshTimer) {
                     clearTimeout(this.tokenRefreshTimer);
                 }
@@ -132,6 +142,8 @@ export class Api extends Connection implements ApiInterface {
             // save tokens directly to localStorage
             localStorage.setItem('accessToken', authData.accessToken);
             localStorage.setItem('refreshToken', authData.refreshToken);
+
+            console.log('SDK call planRefresh 1');
             planRefresh();
             return accountInfo;
         } catch (e) {
@@ -155,6 +167,8 @@ export class Api extends Connection implements ApiInterface {
                 localStorage.setItem('accessToken', authData.accessToken);
                 localStorage.setItem('refreshToken', authData.refreshToken);
                 this.authData = authData;
+
+                console.log('SDK call planRefresh 2');
                 planRefresh();
                 return accountInfo;
             }
