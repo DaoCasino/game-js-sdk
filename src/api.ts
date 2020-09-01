@@ -105,8 +105,10 @@ export class Api extends Connection implements ApiInterface {
                     planRefresh();
                 } catch (e) {
                     // remove tokens from localStorage if expired
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
+                    if (e instanceof TokenExpiredError) {
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('refreshToken');
+                    }
                     console.error('Token autoRefresh failed');
                 }
             };
