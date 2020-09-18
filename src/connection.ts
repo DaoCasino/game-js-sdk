@@ -24,7 +24,7 @@ export class WalletAuth {
         walletUrl: string,
         redirectUrl: string,
         platformId = DEFAULT_PLATFORM_ID,
-        platformEnv = DEFAULT_PLATFORM_ENV,
+        platformEnv = DEFAULT_PLATFORM_ENV
     ) {
         this.walletUrl = walletUrl;
         this.redirectUrl = new URL(redirectUrl);
