@@ -1,6 +1,6 @@
 import { InMsg, Request, WsErrorMsg } from './types';
 import { wsError } from './errors';
-import { DEFAULT_PLATFORM_ID } from './constants';
+import { DEFAULT_PLATFORM_ID, DEFAULT_PLATFORM_ENV } from './constants';
 import { EventEmitter } from './eventEmitter';
 
 // Exported just for children classes, not used in api
@@ -17,16 +17,19 @@ export class WalletAuth {
     private readonly walletUrl: string;
     private readonly redirectUrl: URL;
     private readonly platformId: string;
+    private readonly platformEnv: string;
     public readonly token: string | null;
 
     constructor(
         walletUrl: string,
         redirectUrl: string,
-        platformId = DEFAULT_PLATFORM_ID
+        platformId = DEFAULT_PLATFORM_ID,
+        platformEnv = DEFAULT_PLATFORM_ENV,
     ) {
         this.walletUrl = walletUrl;
         this.redirectUrl = new URL(redirectUrl);
         this.platformId = platformId;
+        this.platformEnv = platformEnv;
         this.token = this.getWalletToken();
     }
 
@@ -51,6 +54,7 @@ export class WalletAuth {
         url.searchParams.append('name', casinoName);
         url.searchParams.append('url', redirect);
         url.searchParams.append('id', this.platformId);
+        url.searchParams.append('env', this.platformEnv);
 
         window.location.href = url.toString();
     }
