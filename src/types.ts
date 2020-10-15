@@ -37,6 +37,11 @@ export type Update = {
     payload: any;
 };
 
+export type AuthRequestParams = {
+    tmpToken: string;
+    affiliateID?: string;
+};
+
 export type InMsg = Response | Update;
 
 export type EventListener = () => unknown;

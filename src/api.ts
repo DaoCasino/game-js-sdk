@@ -7,7 +7,12 @@ import {
     GameSessionUpdate,
 } from './models';
 import { Connection, WalletAuth } from './connection';
-import { AuthData, ConnectionParams, EventListener } from './types';
+import {
+    AuthData,
+    ConnectionParams,
+    EventListener,
+    AuthRequestParams,
+} from './types';
 import * as jwt from 'jsonwebtoken';
 import { TokenExpiredError } from './errors';
 import { Api as ApiInterface } from './interfaces';
@@ -42,7 +47,7 @@ export class Api extends Connection implements ApiInterface {
     }
 
     public async getToken(walletAuth: WalletAuth): Promise<AuthData> {
-        const params = { tmpToken: walletAuth.token };
+        const params: AuthRequestParams = { tmpToken: walletAuth.token };
         const affiliateID = localStorage.getItem('affiliate_id');
         if (affiliateID) {
             params.affiliateID = affiliateID;
