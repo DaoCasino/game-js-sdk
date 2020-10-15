@@ -26,6 +26,8 @@ export class WalletAuth {
         platformId = DEFAULT_PLATFORM_ID,
         platformEnv = DEFAULT_PLATFORM_ENV
     ) {
+        this.storeAffiliateID();
+
         this.walletUrl = walletUrl;
         this.redirectUrl = new URL(redirectUrl);
         this.platformId = platformId;
@@ -75,6 +77,13 @@ export class WalletAuth {
         const url = new URL(window.location.toString());
         url.searchParams.delete('token');
         window.history.pushState({}, document.title, url.toString());
+    }
+
+    private storeAffiliateID() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('affiliate_id')) {
+            localStorage.setItem('affiliate_id', urlParams.get('affiliate_id'));
+        }
     }
 }
 
