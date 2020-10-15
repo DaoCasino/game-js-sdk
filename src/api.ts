@@ -50,10 +50,7 @@ export class Api extends Connection implements ApiInterface {
         }
         const auth = await fetch(`${this.params.httpUrl}/auth`, {
             method: 'POST',
-            body: JSON.stringify({
-                tmpToken: walletAuth.token,
-                affiliateID: affiliateID,
-            }),
+            body: JSON.stringify(params),
             headers: {
                 'Content-Type': 'application/json',
             },
