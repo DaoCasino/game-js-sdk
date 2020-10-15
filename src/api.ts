@@ -42,15 +42,18 @@ export class Api extends Connection implements ApiInterface {
     }
 
     public async getToken(walletAuth: WalletAuth): Promise<AuthData> {
+        const affiliateID = localStorage.getItem('affiliate_id');
         const auth = await fetch(`${this.params.httpUrl}/auth`, {
             method: 'POST',
             body: JSON.stringify({
                 tmpToken: walletAuth.token,
+                affiliateID: affiliateID,
             }),
             headers: {
                 'Content-Type': 'application/json',
             },
         });
+        localStorage.removeItem('affiliate_id');
         return auth.json() as Promise<AuthData>;
     }
 
