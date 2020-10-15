@@ -80,10 +80,9 @@ export class WalletAuth {
     }
 
     private storeAffiliateID() {
-        const url = new URL(window.location.toString());
-        const affiliateID = url.searchParams.get('affiliate_id');
-        if (affiliateID) {
-            localStorage.setItem('affiliate_id', affiliateID);
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('affiliate_id')) {
+            localStorage.setItem('affiliate_id', urlParams.get('affiliate_id'));
         }
     }
 }

@@ -42,7 +42,12 @@ export class Api extends Connection implements ApiInterface {
     }
 
     public async getToken(walletAuth: WalletAuth): Promise<AuthData> {
+        const params = { tmpToken: walletAuth.token };
         const affiliateID = localStorage.getItem('affiliate_id');
+        if (affiliateID) {
+            params.affiliateID = affiliateID;
+            localStorage.removeItem('affiliate_id');
+        }
         const auth = await fetch(`${this.params.httpUrl}/auth`, {
             method: 'POST',
             body: JSON.stringify({
@@ -53,7 +58,6 @@ export class Api extends Connection implements ApiInterface {
                 'Content-Type': 'application/json',
             },
         });
-        localStorage.removeItem('affiliate_id');
         return auth.json() as Promise<AuthData>;
     }
 
