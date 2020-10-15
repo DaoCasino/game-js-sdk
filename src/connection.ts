@@ -18,28 +18,33 @@ export class WalletAuth {
     private readonly redirectUrl: URL;
     private readonly platformId: string;
     private readonly platformEnv: string;
+    private readonly casinoName: string;
     public readonly token: string | null;
 
     constructor(
         walletUrl: string,
         redirectUrl: string,
         platformId = DEFAULT_PLATFORM_ID,
-        platformEnv = DEFAULT_PLATFORM_ENV
+        platformEnv = DEFAULT_PLATFORM_ENV,
+        casinoName: string
     ) {
-        this.storeAffiliateID();
-
         this.walletUrl = walletUrl;
         this.redirectUrl = new URL(redirectUrl);
         this.platformId = platformId;
         this.platformEnv = platformEnv;
+        this.casinoName = casinoName;
         this.token = this.getWalletToken();
+
+        this.storeAffiliateID();
     }
 
     public reset(): WalletAuth {
         return new WalletAuth(
             this.walletUrl,
             this.redirectUrl.toString(),
-            this.platformId
+            this.platformId,
+            this.platformEnv,
+            this.casinoName
         );
     }
 
@@ -47,18 +52,22 @@ export class WalletAuth {
         return this.token && this.token !== '';
     }
 
-    public auth(casinoName: string) {
+    public getAuthURL(): URL {
         const url = new URL('/auth', this.walletUrl);
         const redirectToTrim = this.redirectUrl.toString();
         const redirect = redirectToTrim.endsWith('/')
             ? redirectToTrim.slice(0, -1)
             : redirectToTrim;
-        url.searchParams.append('name', casinoName);
+        url.searchParams.append('name', this.casinoName);
         url.searchParams.append('url', redirect);
         url.searchParams.append('id', this.platformId);
         url.searchParams.append('env', this.platformEnv);
 
-        window.location.href = url.toString();
+        return url;
+    }
+
+    public auth() {
+        window.location.href = this.getAuthURL().toString();
     }
 
     private getWalletToken(): string | null {
