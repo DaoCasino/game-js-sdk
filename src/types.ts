@@ -30,6 +30,16 @@ export type Response = {
     payload: any;
 };
 
+export type RestError = {
+    code: number;
+    message: string;
+};
+
+export type RestResponse = {
+    response: any | null;
+    error: RestError | null;
+};
+
 export type Update = {
     type: 'update';
     reason: string;

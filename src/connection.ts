@@ -103,6 +103,7 @@ export class Connection {
 
     protected params: ConstructorParams;
     protected webSocket: WebSocket;
+    protected storage: Storage;
 
     private requestsCount = 0;
     private requests: Request[] = [];
@@ -174,9 +175,14 @@ export class Connection {
         });
     }
 
-    protected constructor(params: ConstructorParams, webSocket: WebSocket) {
+    constructor(
+        params: ConstructorParams,
+        webSocket: WebSocket,
+        storage: Storage
+    ) {
         this.params = params;
         this.webSocket = webSocket;
+        this.storage = storage;
 
         webSocket.onclose = this.onClose.bind(this);
         webSocket.onmessage = this.onMessage.bind(this);
