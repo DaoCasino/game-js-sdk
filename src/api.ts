@@ -86,7 +86,7 @@ export class Api extends Connection implements ApiInterface {
                 'Content-Type': 'application/json',
             },
         });
-        return auth.json() as Promise<AuthData>;
+        return this.getResponse(auth.json());
     }
 
     public async refreshToken(authData: AuthData): Promise<AuthData> {
