@@ -12,6 +12,7 @@ import {
     ConnectionParams,
     EventListener,
     AuthRequestParams,
+    RestResponse,
 } from './types';
 import * as jwt from 'jsonwebtoken';
 import { TokenExpiredError } from './errors';
@@ -33,6 +34,31 @@ export class Api extends Connection implements ApiInterface {
         return this.authData !== undefined;
     }
 
+    private async getResponse<T>(promise): Promise<T> {
+        const json = await promise;
+        if ('response' in json && 'error' in json) {
+            const { response, error }: RestResponse = json;
+            if (error !== null) {
+                throw new Error(error.message);
+            }
+            return response as T;
+        }
+
+        return json as T;
+    }
+
+    private saveTokens(authData: AuthData) {
+        // save tokens directly to storage
+        this.storage.setItem('accessToken', authData.accessToken);
+        this.storage.setItem('refreshToken', authData.refreshToken);
+    }
+
+    private removeTokens() {
+        // remove tokens from storage
+        this.storage.removeItem('accessToken');
+        this.storage.removeItem('refreshToken');
+    }
+
     protected onClose(ev: CloseEvent) {
         if (this.tokenRefreshTimer) {
             clearTimeout(this.tokenRefreshTimer);
@@ -48,10 +74,10 @@ export class Api extends Connection implements ApiInterface {
 
     public async getToken(walletAuth: WalletAuth): Promise<AuthData> {
         const params: AuthRequestParams = { tmpToken: walletAuth.token };
-        const affiliateID = localStorage.getItem('affiliate_id');
+        const affiliateID = this.storage.getItem('affiliate_id');
         if (affiliateID) {
             params.affiliateID = affiliateID;
-            localStorage.removeItem('affiliate_id');
+            this.storage.removeItem('affiliate_id');
         }
         const auth = await fetch(`${this.params.httpUrl}/auth`, {
             method: 'POST',
@@ -63,7 +89,7 @@ export class Api extends Connection implements ApiInterface {
         return auth.json() as Promise<AuthData>;
     }
 
-    public async refreshToken(authData: AuthData) {
+    public async refreshToken(authData: AuthData): Promise<AuthData> {
         if (this.refreshedTokens.includes(authData.refreshToken))
             return Promise.resolve(authData);
         this.refreshedTokens.push(authData.refreshToken);
@@ -76,11 +102,11 @@ export class Api extends Connection implements ApiInterface {
                 'Content-Type': 'application/json',
             },
         });
-        return auth.json() as Promise<AuthData>;
+        return this.getResponse(auth.json());
     }
 
-    public async logout(authData: AuthData) {
-        await fetch(`${this.params.httpUrl}/logout`, {
+    public async logout(authData: AuthData): Promise<boolean> {
+        const response = await fetch(`${this.params.httpUrl}/logout`, {
             method: 'POST',
             body: JSON.stringify({
                 accessToken: authData.accessToken,
@@ -89,9 +115,36 @@ export class Api extends Connection implements ApiInterface {
                 'Content-Type': 'application/json',
             },
         });
-        // remove tokens from localStorage
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+
+        if (response.ok) {
+            // remove tokens from storage
+            this.removeTokens();
+        }
+
+        let json;
+        try {
+            json = await response.json();
+        } catch (e) {
+            // empty json response, old backend version
+            return response.ok;
+        }
+
+        return this.getResponse(Promise.resolve(json));
+    }
+
+    public async optout(authData: AuthData): Promise<boolean> {
+        const response = await fetch(`${this.params.httpUrl}/optout`, {
+            method: 'POST',
+            body: JSON.stringify({
+                accessToken: authData.accessToken,
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        // remove tokens from storage
+        this.removeTokens();
+        return this.getResponse(response.json());
     }
 
     public async auth(authData: AuthData) {
@@ -102,20 +155,12 @@ export class Api extends Connection implements ApiInterface {
                 try {
                     this.authData = await this.refreshToken(this.authData);
                     this.eventEmitter.emit('tokensUpdate', this.authData);
-                    // save tokens directly to localStorage
-                    localStorage.setItem(
-                        'accessToken',
-                        this.authData.accessToken
-                    );
-                    localStorage.setItem(
-                        'refreshToken',
-                        this.authData.refreshToken
-                    );
+                    // save tokens directly to storage
+                    this.saveTokens(this.authData);
                     planRefresh();
                 } catch (e) {
-                    // remove tokens from localStorage if expired
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
+                    // remove tokens from storage if expired
+                    this.removeTokens();
                     console.error('Token autoRefresh failed');
                 }
             };
@@ -148,9 +193,8 @@ export class Api extends Connection implements ApiInterface {
                 token: authData.accessToken,
             });
             this.authData = authData;
-            // save tokens directly to localStorage
-            localStorage.setItem('accessToken', authData.accessToken);
-            localStorage.setItem('refreshToken', authData.refreshToken);
+            // save tokens directly to storage
+            this.saveTokens(authData);
 
             console.log('SDK call planRefresh 1');
             planRefresh();
@@ -161,9 +205,8 @@ export class Api extends Connection implements ApiInterface {
                 try {
                     authData = await this.refreshToken(authData);
                 } catch (refreshE) {
-                    // remove tokens from localStorage if expired
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
+                    // remove tokens from storage if expired
+                    this.removeTokens();
                     // Throw e just to be more comfortable catching in front
                     throw e;
                 }
@@ -172,9 +215,8 @@ export class Api extends Connection implements ApiInterface {
                     token: authData.accessToken,
                 });
                 this.eventEmitter.emit('tokensUpdate', authData);
-                // save tokens directly to localStorage
-                localStorage.setItem('accessToken', authData.accessToken);
-                localStorage.setItem('refreshToken', authData.refreshToken);
+                // save tokens directly to storage
+                this.saveTokens(authData);
                 this.authData = authData;
 
                 console.log('SDK call planRefresh 2');
@@ -306,7 +348,8 @@ export class Api extends Connection implements ApiInterface {
                 autoRefresh: params.autoRefresh || false,
                 secure,
             },
-            webSocket
+            webSocket,
+            localStorage
         );
     }
 }
