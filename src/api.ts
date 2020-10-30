@@ -142,8 +142,11 @@ export class Api extends Connection implements ApiInterface {
                 'Content-Type': 'application/json',
             },
         });
-        // remove tokens from storage
-        this.removeTokens();
+
+        if (response.ok) {
+            // remove tokens from storage
+            this.removeTokens();
+        }
         return this.getResponse(response.json());
     }
 
