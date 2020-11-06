@@ -15,7 +15,7 @@ import {
     RestResponse,
 } from './types';
 import * as jwt from 'jsonwebtoken';
-import { TokenExpiredError } from './errors';
+import { TokenExpiredError, httpError, HttpTokenExpiredError } from './errors';
 import { Api as ApiInterface } from './interfaces';
 
 const MILLIS_IN_SEC = 1000;
@@ -39,7 +39,7 @@ export class Api extends Connection implements ApiInterface {
         if ('response' in json && 'error' in json) {
             const { response, error }: RestResponse = json;
             if (error !== null) {
-                throw new Error(error.message);
+                throw httpError(error);
             }
             return response as T;
         }
@@ -48,12 +48,14 @@ export class Api extends Connection implements ApiInterface {
     }
 
     private saveTokens(authData: AuthData) {
+        console.log('SDK saveTokens');
         // save tokens directly to storage
         this.storage.setItem('accessToken', authData.accessToken);
         this.storage.setItem('refreshToken', authData.refreshToken);
     }
 
     private removeTokens() {
+        console.log('SDK removeTokens');
         // remove tokens from storage
         this.storage.removeItem('accessToken');
         this.storage.removeItem('refreshToken');
@@ -162,8 +164,10 @@ export class Api extends Connection implements ApiInterface {
                     this.saveTokens(this.authData);
                     planRefresh();
                 } catch (e) {
-                    // remove tokens from storage if expired
-                    this.removeTokens();
+                    if (e instanceof HttpTokenExpiredError) {
+                        // remove tokens from storage if expired
+                        this.removeTokens();
+                    }
                     console.error('Token autoRefresh failed');
                 }
             };
@@ -208,8 +212,10 @@ export class Api extends Connection implements ApiInterface {
                 try {
                     authData = await this.refreshToken(authData);
                 } catch (refreshE) {
-                    // remove tokens from storage if expired
-                    this.removeTokens();
+                    if (refreshE instanceof HttpTokenExpiredError) {
+                        // remove tokens from storage if expired
+                        this.removeTokens();
+                    }
                     // Throw e just to be more comfortable catching in front
                     throw e;
                 }
