@@ -21,12 +21,14 @@ import { Api as ApiInterface } from './interfaces';
 const MILLIS_IN_SEC = 1000;
 // In seconds
 const PRE_REFRESH_TOKEN_TIME = 10;
+const MAX_TOKEN_REFRESH_ATTEMPTS = 10;
 
 export class Api extends Connection implements ApiInterface {
     private authData?: AuthData;
 
     private eventListener?: EventListener;
     private tokenRefreshTimer = undefined;
+    private tokenRefreshAttempts = 0;
 
     private refreshedTokens: string[] = [];
 
@@ -162,13 +164,22 @@ export class Api extends Connection implements ApiInterface {
                     this.eventEmitter.emit('tokensUpdate', this.authData);
                     // save tokens directly to storage
                     this.saveTokens(this.authData);
+                    this.tokenRefreshAttempts = 0;
                     planRefresh();
                 } catch (e) {
+                    console.error('Token autoRefresh failed', e);
                     if (e instanceof HttpTokenExpiredError) {
                         // remove tokens from storage if expired
                         this.removeTokens();
+                    } else {
+                        this.tokenRefreshAttempts++;
+                        if (
+                            this.tokenRefreshAttempts <
+                            MAX_TOKEN_REFRESH_ATTEMPTS
+                        ) {
+                            planRefresh();
+                        }
                     }
-                    console.error('Token autoRefresh failed');
                 }
             };
             const decoded = jwt.decode(this.authData.accessToken, {
