@@ -21,7 +21,7 @@ import { Api as ApiInterface } from './interfaces';
 const MILLIS_IN_SEC = 1000;
 // In seconds
 const PRE_REFRESH_TOKEN_TIME = 10;
-const MAX_TOKEN_REFRESH_ATTEMPTS = 10;
+const TOKEN_REFRESH_ATTEMPTS = 10;
 
 export class Api extends Connection implements ApiInterface {
     private authData?: AuthData;
@@ -174,8 +174,7 @@ export class Api extends Connection implements ApiInterface {
                     } else {
                         this.tokenRefreshAttempts++;
                         if (
-                            this.tokenRefreshAttempts <
-                            MAX_TOKEN_REFRESH_ATTEMPTS
+                            this.tokenRefreshAttempts < TOKEN_REFRESH_ATTEMPTS
                         ) {
                             planRefresh();
                         }
