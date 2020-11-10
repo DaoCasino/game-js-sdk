@@ -1,3 +1,5 @@
+import { RestError } from './types';
+
 export enum Errors {
     BadRequest = 4000,
     RequestParseError = 4001,
@@ -36,5 +38,33 @@ export function wsError(errorCode: number, m?: string) {
             return new TokenExpiredError(m ? m : 'Token is expired');
         default:
             return new WsError(m ? m : 'Unknown error');
+    }
+}
+
+enum HttpErrors {
+    TokenExpiredError = 401,
+}
+
+class HttpError extends Error {
+    constructor(m: string) {
+        super(m);
+        Object.setPrototypeOf(this, HttpError.prototype);
+    }
+}
+
+export class HttpTokenExpiredError extends HttpError {
+    constructor(m: string) {
+        super(m);
+        Object.setPrototypeOf(this, HttpTokenExpiredError.prototype);
+    }
+}
+
+export function httpError({ code, message }: RestError) {
+    switch (code) {
+        case HttpErrors.TokenExpiredError:
+            return new HttpTokenExpiredError(message);
+
+        default:
+            return new HttpError(message);
     }
 }
