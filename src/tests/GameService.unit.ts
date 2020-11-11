@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { AccountInfo, GameSessionUpdate, GameSession } from '../models';
 
 import { Api } from '../interfaces';
-import { GameService } from '../gameService';
+import { GameService, formatBet } from '../gameService';
 import { EventEmitter } from '../eventEmitter';
 
 const DURATION = 0;
@@ -19,20 +19,23 @@ const randomString = () =>
 
 class ApiMock implements Api {
     eventEmitter: EventEmitter;
+    private info: AccountInfo;
     constructor() {
         this.eventEmitter = new EventEmitter();
-    }
-    accountInfo() {
-        const info: AccountInfo = {
+        this.info = {
             accountName: randomString(),
             email: randomString(),
             balance: '100.0000 BET',
+            bonusBalances: { '0': { balance: '50.0000 BET' } },
             activePermission: randomString(),
             ownerPermission: randomString(),
             linkedCasinos: [],
         };
-        return Promise.resolve(info);
     }
+    accountInfo(): Promise<AccountInfo> {
+        return Promise.resolve(this.info);
+    }
+
     fetchSessionUpdates(sessionId: string) {
         const base: GameSessionUpdate<any> = {
             data: { msg: [Math.random()] },
@@ -150,5 +153,25 @@ describe('GameService unit test', () => {
 
         expect(test2[1].timestamp).to.equal('4');
         expect(test2[1].updateType).to.equal(4);
+    });
+
+    it('getBalance', async () => {
+        const service = new GameService(api, { id: 0, params: {} }, '0');
+        const balance = await service.getBalance();
+        expect(balance).to.equal('150.0000 BET');
+    });
+
+    it('formatBet', () => {
+        expect(formatBet(150)).to.equal('150.0000 BET');
+        expect(formatBet(150.2)).to.equal('150.2000 BET');
+        expect(formatBet(67.25987)).to.equal('67.2598 BET');
+        expect(formatBet(67.25)).to.equal('67.2500 BET');
+    });
+
+    it('accountName', async () => {
+        const info = await api.accountInfo();
+        const service = new GameService(api, { id: 0, params: {} }, '0');
+        const accountName = await service.getAccountName();
+        expect(accountName).to.equal(info.accountName);
     });
 });

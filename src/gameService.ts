@@ -3,10 +3,31 @@ import {
     GameSession,
     GameSessionUpdate,
     UpdateTypes,
+    BonusBalances,
 } from './models';
 import { WAIT_ACTION_DURATION } from './constants';
 import { Api } from './interfaces';
 import { Callback, EventEmitter } from './eventEmitter';
+
+export const parseBet = (str: string): number =>
+    parseFloat(str.replace(/\s+BET$/, ''));
+
+export const formatBet = (num: number): string => {
+    // eslint-disable-next-line
+    let [integer, decimals] = num
+        .toString()
+        .match(/^-?\d+(?:\.\d{0,4})?/)[0]
+        .split('.');
+    if (decimals) {
+        for (let i = decimals.length; i < 4; i++) {
+            decimals += '0';
+        }
+    } else {
+        decimals = '0000';
+    }
+
+    return `${integer}.${decimals} BET`;
+};
 
 export class GameService extends EventEmitter {
     private gameId: string;
@@ -25,13 +46,37 @@ export class GameService extends EventEmitter {
         this.resolved = new Map();
     }
 
+    private getCasinoBonusBalance(bonusBalances: BonusBalances): string | null {
+        if (bonusBalances && this.casinoId in bonusBalances) {
+            const { balance } = bonusBalances[this.casinoId];
+            if (balance) {
+                return balance;
+            }
+        }
+
+        return null;
+    }
+
     public async getBalance(): Promise<string> {
-        const { balance } = await this.api.accountInfo();
+        const { balance, bonusBalances } = await this.api.accountInfo();
         if (!balance) {
             throw new Error('No field balance in accountInfo');
         }
 
+        const casinoBonusBalance = this.getCasinoBonusBalance(bonusBalances);
+        if (casinoBonusBalance !== null) {
+            return formatBet(parseBet(balance) + parseBet(casinoBonusBalance));
+        }
+
         return balance;
+    }
+
+    public async getAccountName(): Promise<string> {
+        const { accountName } = await this.api.accountInfo();
+        if (!accountName) {
+            throw new Error('No field accountName in accountInfo');
+        }
+        return accountName;
     }
 
     public getGameParams(): GameParams[] {

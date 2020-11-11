@@ -1,7 +1,14 @@
+export type BonusBalances = {
+    [key: string]: {
+        balance: string;
+    };
+};
+
 export type AccountInfo = {
     accountName: string;
     email: string;
     balance: string;
+    bonusBalances?: BonusBalances;
     activePermission: string;
     ownerPermission: string;
     linkedCasinos: Casino[];
