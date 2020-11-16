@@ -49,7 +49,7 @@ export type Update = {
 
 export type AuthRequestParams = {
     tmpToken: string;
-    casinoName: string;
+    casinoName?: string;
     affiliateID?: string;
 };
 
