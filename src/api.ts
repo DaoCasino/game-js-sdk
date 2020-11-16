@@ -77,7 +77,10 @@ export class Api extends Connection implements ApiInterface {
     }
 
     public async getToken(walletAuth: WalletAuth): Promise<AuthData> {
-        const params: AuthRequestParams = { tmpToken: walletAuth.token };
+        const params: AuthRequestParams = {
+            tmpToken: walletAuth.token,
+            casinoName: walletAuth.getCasinoName(),
+        };
         const affiliateID = this.storage.getItem('affiliate_id');
         if (affiliateID) {
             params.affiliateID = affiliateID;
