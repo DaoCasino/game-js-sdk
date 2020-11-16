@@ -94,6 +94,10 @@ export class WalletAuth {
             localStorage.setItem('affiliate_id', urlParams.get('affiliate_id'));
         }
     }
+
+    public getCasinoName(): string {
+        return this.casinoName;
+    }
 }
 
 export class Connection {
