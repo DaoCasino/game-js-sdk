@@ -15,7 +15,12 @@ import {
     RestResponse,
 } from './types';
 import * as jwt from 'jsonwebtoken';
-import { TokenExpiredError, httpError, HttpTokenExpiredError } from './errors';
+import {
+    TokenExpiredError,
+    httpError,
+    HttpTokenExpiredError,
+    HttpClientError,
+} from './errors';
 import { Api as ApiInterface } from './interfaces';
 
 const MILLIS_IN_SEC = 1000;
@@ -171,7 +176,10 @@ export class Api extends Connection implements ApiInterface {
                     planRefresh();
                 } catch (e) {
                     console.error('Token autoRefresh failed', e);
-                    if (e instanceof HttpTokenExpiredError) {
+                    if (
+                        e instanceof HttpTokenExpiredError ||
+                        e instanceof HttpClientError
+                    ) {
                         // remove tokens from storage if expired
                         this.removeTokens();
                     } else {
@@ -225,7 +233,10 @@ export class Api extends Connection implements ApiInterface {
                 try {
                     authData = await this.refreshToken(authData);
                 } catch (refreshE) {
-                    if (refreshE instanceof HttpTokenExpiredError) {
+                    if (
+                        refreshE instanceof HttpTokenExpiredError ||
+                        refreshE instanceof HttpClientError
+                    ) {
                         // remove tokens from storage if expired
                         this.removeTokens();
                     }

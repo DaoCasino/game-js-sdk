@@ -45,7 +45,7 @@ enum HttpErrors {
     TokenExpiredError = 401,
 }
 
-class HttpError extends Error {
+export class HttpError extends Error {
     constructor(m: string) {
         super(m);
         Object.setPrototypeOf(this, HttpError.prototype);
@@ -59,12 +59,22 @@ export class HttpTokenExpiredError extends HttpError {
     }
 }
 
+export class HttpClientError extends HttpError {
+    constructor(m: string) {
+        super(m);
+        Object.setPrototypeOf(this, HttpClientError.prototype);
+    }
+}
+
 export function httpError({ code, message }: RestError) {
     switch (code) {
         case HttpErrors.TokenExpiredError:
             return new HttpTokenExpiredError(message);
-
-        default:
-            return new HttpError(message);
     }
+
+    if (code >= 400 && code < 500) {
+        return new HttpClientError(message);
+    }
+
+    return new HttpError(message);
 }
