@@ -24,8 +24,7 @@ import {
 import { Api as ApiInterface } from './interfaces';
 
 const MILLIS_IN_SEC = 1000;
-// In seconds
-const PRE_REFRESH_TOKEN_TIME = 10;
+const PRE_REFRESH_TOKEN_TIME = 10 * MILLIS_IN_SEC;
 const TOKEN_REFRESH_ATTEMPTS = 10;
 
 export class Api extends Connection implements ApiInterface {
@@ -197,20 +196,18 @@ export class Api extends Connection implements ApiInterface {
             });
             console.log('SDK token', { decoded });
             const exp = (decoded as { payload: { exp: number } }).payload!!.exp;
-
-            const nowTime = new Date().getTime() / MILLIS_IN_SEC;
+            const nowTime = new Date().getTime();
 
             if (this.params.autoRefresh) {
-                const refreshAfter = exp - nowTime - PRE_REFRESH_TOKEN_TIME;
-                console.log('SDK autoRefresh params', { refreshAfter });
+                const refreshAfter =
+                    exp * MILLIS_IN_SEC - nowTime - PRE_REFRESH_TOKEN_TIME;
+
                 if (this.tokenRefreshTimer) {
                     clearTimeout(this.tokenRefreshTimer);
                 }
                 if (this.webSocket.readyState === WebSocket.OPEN) {
-                    this.tokenRefreshTimer = setTimeout(
-                        refresh,
-                        refreshAfter * MILLIS_IN_SEC
-                    );
+                    console.log('SDK autoRefresh params', { refreshAfter });
+                    this.tokenRefreshTimer = setTimeout(refresh, refreshAfter);
                 }
             }
         };
