@@ -40,8 +40,26 @@ export class Api extends Connection implements ApiInterface {
         return this.authData !== undefined;
     }
 
-    private async getResponse<T>(promise): Promise<T> {
-        const json = await promise;
+    private async processResponse<T>(response): Promise<T> {
+        const text = await response.text();
+        let json: RestResponse;
+        try {
+            json = JSON.parse(text);
+        } catch (e) {
+            if (response.ok) {
+                json = { response: text, error: null };
+            } else {
+                json = {
+                    response: null,
+                    error: { code: response.status, message: text },
+                };
+            }
+        }
+
+        return this.getResponse(json);
+    }
+
+    private getResponse<T>(json: any): T {
         if ('response' in json && 'error' in json) {
             const { response, error }: RestResponse = json;
             if (error !== null) {
@@ -97,7 +115,7 @@ export class Api extends Connection implements ApiInterface {
                 'Content-Type': 'application/json',
             },
         });
-        return this.getResponse(auth.json());
+        return this.processResponse(auth);
     }
 
     public async refreshToken(authData: AuthData): Promise<AuthData> {
@@ -113,7 +131,7 @@ export class Api extends Connection implements ApiInterface {
                 'Content-Type': 'application/json',
             },
         });
-        return this.getResponse(auth.json());
+        return this.processResponse(auth);
     }
 
     public async logout(authData: AuthData): Promise<boolean> {
@@ -132,15 +150,7 @@ export class Api extends Connection implements ApiInterface {
             this.removeTokens();
         }
 
-        let json;
-        try {
-            json = await response.json();
-        } catch (e) {
-            // empty json response, old backend version
-            return response.ok;
-        }
-
-        return this.getResponse(Promise.resolve(json));
+        return this.processResponse(response);
     }
 
     public async optout(authData: AuthData): Promise<boolean> {
@@ -158,7 +168,7 @@ export class Api extends Connection implements ApiInterface {
             // remove tokens from storage
             this.removeTokens();
         }
-        return this.getResponse(response.json());
+        return this.processResponse(response);
     }
 
     public async auth(authData: AuthData) {

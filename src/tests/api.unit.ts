@@ -3,6 +3,7 @@ import { expect } from 'chai';
 
 import { Api } from '../api';
 import { AuthData, RestError, RestResponse } from '../types';
+import { HttpClientError } from '../errors';
 
 // eslint-disable-next-line
 require('isomorphic-fetch');
@@ -108,6 +109,20 @@ describe('API unit test', () => {
             }
             expect(err.message).to.equal(error.message);
         });
+
+        it('error old type', async () => {
+            fetchMock.post(url, 400);
+            let err;
+            try {
+                await api.refreshToken(randomAuthData());
+                fetchMock.reset();
+            } catch (e) {
+                fetchMock.reset();
+                err = e;
+            }
+            console.log(err);
+            expect(err).to.be.an.instanceof(HttpClientError);
+        });
     });
 
     describe('logout', () => {
@@ -116,7 +131,7 @@ describe('API unit test', () => {
             fetchMock.post(url, 200);
             const result = await api.logout(randomAuthData());
             fetchMock.reset();
-            expect(result).to.equal(true);
+            expect(result).to.equal('');
         });
         it('ok', async () => {
             fetchMock.post(url, createResponse(true));
