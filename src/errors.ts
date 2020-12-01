@@ -7,6 +7,7 @@ export enum Errors {
     UnauthorizedError = 4003,
     ContentNotFoundError = 4004,
     InternalError = 5000,
+    SessionExpiredError = 4200,
 }
 
 export class WsError extends Error {
@@ -30,12 +31,21 @@ export class TokenExpiredError extends WsError {
     }
 }
 
+export class SessionExpiredError extends WsError {
+    constructor(m: string) {
+        super(m);
+        Object.setPrototypeOf(this, SessionExpiredError.prototype);
+    }
+}
+
 export function wsError(errorCode: number, m?: string) {
     switch (errorCode) {
         case -1:
             return new ConnectionError(m ? m : 'Connection error');
         case Errors.AuthCheckError:
             return new TokenExpiredError(m ? m : 'Token is expired');
+        case Errors.SessionExpiredError:
+            return new SessionExpiredError(m ? m : 'Session is expired');
         default:
             return new WsError(m ? m : 'Unknown error');
     }
