@@ -9,8 +9,6 @@ import { WAIT_ACTION_DURATION } from './constants';
 import { Api } from './interfaces';
 import { Callback, EventEmitter } from './eventEmitter';
 
-import { SessionExpiredError } from './errors';
-
 export const parseBet = (str: string): number =>
     parseFloat(str.replace(/\s+BET$/, ''));
 
@@ -29,17 +27,6 @@ export const formatBet = (num: number): string => {
     }
 
     return `${integer}.${decimals} BET`;
-};
-
-const humanizeError = error => {
-    switch (error.constructor) {
-        case SessionExpiredError:
-            throw new SessionExpiredError(
-                'Your session is expired. The time limit for game sessions is 10 minutes.'
-            );
-        default:
-            throw error;
-    }
 };
 
 export class GameService extends EventEmitter {
@@ -197,22 +184,18 @@ export class GameService extends EventEmitter {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         duration: number = WAIT_ACTION_DURATION
     ): Promise<GameSessionUpdate<T>> {
-        try {
-            this.session = await this.api.newGame(
-                this.casinoId,
-                this.gameId,
-                deposit,
-                actionType,
-                params
-            );
+        this.session = await this.api.newGame(
+            this.casinoId,
+            this.gameId,
+            deposit,
+            actionType,
+            params
+        );
 
-            return this.waitForActionComplete<T>(
-                this.session.id,
-                typeof updateType === 'number' ? [updateType] : updateType
-            );
-        } catch (e) {
-            humanizeError(e);
-        }
+        return this.waitForActionComplete<T>(
+            this.session.id,
+            typeof updateType === 'number' ? [updateType] : updateType
+        );
     }
 
     public async newGameMultiUpdate<T>(
@@ -223,19 +206,15 @@ export class GameService extends EventEmitter {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         duration: number = WAIT_ACTION_DURATION
     ): Promise<Array<GameSessionUpdate<T>>> {
-        try {
-            this.session = await this.api.newGame(
-                this.casinoId,
-                this.gameId,
-                deposit,
-                actionType,
-                params
-            );
+        this.session = await this.api.newGame(
+            this.casinoId,
+            this.gameId,
+            deposit,
+            actionType,
+            params
+        );
 
-            return this.waitForActionsComplete<T>(this.session.id, updateTypes);
-        } catch (e) {
-            humanizeError(e);
-        }
+        return this.waitForActionsComplete<T>(this.session.id, updateTypes);
     }
 
     public async gameAction<T>(
@@ -250,21 +229,12 @@ export class GameService extends EventEmitter {
             throw new Error('No game session');
         }
 
-        try {
-            await this.api.gameAction(
-                this.session.id,
-                actionType,
-                params,
-                deposit
-            );
+        await this.api.gameAction(this.session.id, actionType, params, deposit);
 
-            return this.waitForActionComplete<T>(
-                this.session.id,
-                typeof updateType === 'number' ? [updateType] : updateType
-            );
-        } catch (e) {
-            humanizeError(e);
-        }
+        return this.waitForActionComplete<T>(
+            this.session.id,
+            typeof updateType === 'number' ? [updateType] : updateType
+        );
     }
 
     public async gameActionMultiUpdate<T>(
@@ -279,16 +249,7 @@ export class GameService extends EventEmitter {
             throw new Error('No game session');
         }
 
-        try {
-            await this.api.gameAction(
-                this.session.id,
-                actionType,
-                params,
-                deposit
-            );
-            return this.waitForActionsComplete<T>(this.session.id, updateTypes);
-        } catch (e) {
-            humanizeError(e);
-        }
+        await this.api.gameAction(this.session.id, actionType, params, deposit);
+        return this.waitForActionsComplete<T>(this.session.id, updateTypes);
     }
 }

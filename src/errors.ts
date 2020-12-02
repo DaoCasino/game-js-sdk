@@ -45,7 +45,7 @@ export function wsError(errorCode: number, m?: string) {
         case Errors.AuthCheckError:
             return new TokenExpiredError(m ? m : 'Token is expired');
         case Errors.SessionExpiredError:
-            return new SessionExpiredError(m ? m : 'Session is expired');
+            return new SessionExpiredError(m ? m : 'Your session is expired');
         default:
             return new WsError(m ? m : 'Unknown error');
     }
