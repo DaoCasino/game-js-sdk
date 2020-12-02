@@ -63,7 +63,6 @@ export class EventEmitter {
         return this;
     }
 
-    /** @internal */
     public emit<EvName extends keyof EventType>(
         eventName: EvName,
         value?: EventType[EvName]
