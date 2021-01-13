@@ -7,10 +7,7 @@ const REQUEST_TIMEOUT = 30000;
 export async function getRemoteGameSerivce(
     requestTimeout: number = REQUEST_TIMEOUT
 ): Promise<GameService> {
-    const iframeMessagingProvider = (await IframeMessagingProvider.create(
-        'child'
-    )) as IframeMessagingProvider;
-
+    const iframeMessagingProvider = (await IframeMessagingProvider.createChild()) as IframeMessagingProvider;
     const service = iframeMessagingProvider.getRemoteService<GameService>(
         'GameService',
         requestTimeout
