@@ -171,6 +171,24 @@ export class Api extends Connection implements ApiInterface {
         return this.processResponse(response);
     }
 
+    public async setEthAddress(
+        authData: AuthData,
+        ethAddress: string
+    ): Promise<boolean> {
+        const response = await fetch(`${this.params.httpUrl}/set_eth_addr`, {
+            method: 'POST',
+            body: JSON.stringify({
+                accessToken: authData.accessToken,
+                ethAddress,
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        return this.processResponse(response);
+    }
+
     public async auth(authData: AuthData) {
         const planRefresh = () => {
             console.log('SDK planRefresh');
