@@ -189,6 +189,20 @@ export class Api extends Connection implements ApiInterface {
         return this.processResponse(response);
     }
 
+    public async claim(authData: AuthData): Promise<boolean> {
+        const response = await fetch(`${this.params.httpUrl}/claim`, {
+            method: 'POST',
+            body: JSON.stringify({
+                accessToken: authData.accessToken,
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        return this.processResponse(response);
+    }
+
     public async auth(authData: AuthData) {
         const planRefresh = () => {
             console.log('SDK planRefresh');
