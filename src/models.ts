@@ -77,3 +77,13 @@ export enum SessionState {
     GameFinished = 5,
     GameFailed = 6,
 }
+
+export type Location = {
+    country: {
+        iso_code: string;
+    };
+    location: {
+        latitude: number;
+        longitude: number;
+    };
+};

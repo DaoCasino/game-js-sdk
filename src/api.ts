@@ -5,6 +5,7 @@ import {
     Game,
     GameSession,
     GameSessionUpdate,
+    Location,
 } from './models';
 import { Connection, WalletAuth } from './connection';
 import {
@@ -195,6 +196,16 @@ export class Api extends Connection implements ApiInterface {
             body: JSON.stringify({
                 accessToken: authData.accessToken,
             }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        return this.processResponse(response);
+    }
+
+    public async location(): Promise<Location> {
+        const response = await fetch(`${this.params.httpUrl}/location`, {
             headers: {
                 'Content-Type': 'application/json',
             },
